@@ -1,0 +1,78 @@
+@import "../../style//Helper/mixin";
+
+#dashBoardTemplate {
+    .dashBoardTemplate__sider {
+        .ant-layout-sider-children {
+            background-color: #fff;
+            .ant-menu {
+                background-color: #fff;
+                color: #7E7D88;
+                .ant-menu-submenu {
+                    color: #7E7D88;
+                    .ant-menu-submenu-title:hover {
+                        color: #7E7D88;
+                    }
+                }
+                .ant-menu-item {
+                    color: white;
+                }
+                .ant-menu-item-selected {
+                    background-color: #FF7506!important;
+                    color: white;
+                }
+            }
+            .dashBoardTemplate__logo {
+                margin-bottom: 65px;
+                margin-top: 32px;
+                img {
+                    width: 79px;
+                    height: 53px;
+                }
+            }
+            .dashBoardTemplate__button {
+                margin-bottom: 30px;
+                .button--orange--light {
+                    .dashBoardTemplate__buttonImg {
+                        width: 10px;
+                        margin-left: 14px;
+                    }
+                    .dashBoardTemplate__buttonText {
+                        padding-right: 56px;
+                        margin-left: 12px;
+                    }
+                }
+            }
+        }
+    }
+
+
+    .site-layout {
+        background: rgba(255, 255, 255, 0.3);
+        .dashBoardTemplate__header {
+            .dashBoardTemplate__notifi {
+                width: 20px;
+                height: 20px;
+                margin-right: 24px;
+            }
+            .dashBoardTemplate__headerNavigate {
+                cursor: pointer;
+                margin-right: 64px;
+                .dashBoardTemplate__avatar {
+                    width: 40px;
+                    height: 40px;
+                    margin-right: 8px;
+                }
+                .dashBoardTemplate__profileText {
+                    .dashBoardTemplate__hello {
+                        @include styleText(#7E7D88, 12px, 400, 18px);
+                        margin-bottom: 0
+                    }
+                    .dashBoardTemplate__name {
+                        @include styleText(#535261, 16px, 700, 24px);
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        }
+    }
+}

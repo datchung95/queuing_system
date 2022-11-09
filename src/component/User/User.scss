@@ -1,0 +1,19 @@
+@import "../../style/Helper/mixin";
+
+.item-dropdown {
+    h4 {
+        @include styleText(#bf5805, 16px, 700, 24px);
+    }
+    p {
+        @include styleText(#535261, 16px, 400, 24px);
+    }
+}
+
+.ant-dropdown {
+    .ant-dropdown-menu {
+        margin-top: 27px;
+        padding: 0;
+        max-height: 250px;
+        overflow: auto;
+    }
+}
