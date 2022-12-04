@@ -1,0 +1,449 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  font-family: "Nunito", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+p,
+h1,
+h2,
+h3,
+h4 {
+  margin-bottom: 0;
+}
+
+.text--titleDashboard {
+  color: #ff9138;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 30px;
+  margin-bottom: 0;
+}
+
+.text--titleBottom {
+  color: #ff7506;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 36px;
+  margin-bottom: 0;
+  margin: 16px 0;
+}
+
+.text--title--small {
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 30px;
+  color: #ff7506;
+  margin-bottom: 20px;
+  padding: 0 15px;
+}
+
+.content--padding--block {
+  padding: 16px 9px;
+  background-color: white;
+  box-shadow: 2px 2px 8px rgba(232, 239, 244, 0.8);
+  border-radius: 16px;
+}
+
+.padding-title {
+  padding: 29px 0;
+}
+
+.container-page {
+  margin-left: 24px;
+}
+
+// custom dropdown select xem trước
+.ant-select-dropdown {
+  padding: 8px 0 !important;
+  box-shadow: 0px 0px 6px #e7e9f2 !important;
+  border-radius: 8px !important;
+  .rc-virtual-list {
+    .rc-virtual-list-holder {
+      .rc-virtual-list-holder-inner {
+        .ant-select-item {
+          padding-top: 10px !important;
+          padding-bottom: 10px !important;
+          font-weight: 400;
+          color: #535261;
+          font-family: "Nunito", sans-serif;
+        }
+        .ant-select-item-option-selected {
+          background-color: #fff2e7 !important;
+        }
+        .ant-select-item-option-active {
+          background-color: #fff2e7 !important;
+        }
+      }
+    }
+  }
+}
+
+//custom input
+.ant-input {
+  height: 44px !important;
+  border-radius: 8px !important;
+}
+.ant-input-password {
+  height: 44px !important;
+  border-radius: 8px !important;
+  input {
+    height: 37px !important;
+  }
+}
+
+.label-input {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  color: #282739;
+}
+
+//custom form select
+.ant-select-selector {
+  padding: 10px 12px !important;
+  align-items: center;
+  border: 1.5px solid #d4d4d7 !important;
+  border-radius: 8px !important;
+  height: 44px !important;
+  .ant-select-selection-search {
+    display: flex;
+    align-items: center;
+  }
+  .ant-select-selection-item {
+    font-family: "Nunito", sans-serif;
+  }
+}
+
+//select dropdown scroll bar antd
+.ant-select-dropdown {
+  .rc-virtual-list-scrollbar {
+    width: 4px!important;
+    .rc-virtual-list-scrollbar-thumb {
+      height: 64px!important;
+      background-color: #ffc89b!important;
+      border-radius: 43px!important;
+    }
+  }
+}
+
+//custom table
+.table-row-light {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid white;
+  overflow: hidden;
+}
+.table-row-orange {
+  background-color: #fff2e7;
+  border-radius: 12px;
+  border: 1px solid white;
+  overflow: hidden;
+}
+
+.ant-spin-container {
+  .ant-table-content {
+    background-color: #f5f6f8;
+    table {
+      border-radius: 12px !important;
+      overflow: hidden;
+      thead {
+        tr {
+          th {
+            background-color: #ff9138;
+            color: white;
+            &::before {
+              height: 100% !important;
+              background-color: #ffe3cd !important;
+            }
+          }
+        }
+      }
+      tbody {
+        td {
+          &::before {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background-color: #ffe3cd;
+            transform: translateY(-50%);
+            transition: background-color 0.3s;
+            content: "";
+          }
+          &:last-child::before {
+            background-color: transparent !important;
+          }
+        }
+      }
+    }
+  }
+
+  .ant-pagination-item {
+    border: none;
+    background-color: transparent;
+    color: #7e7d88;
+  }
+
+  .ant-pagination-item-active {
+    border: none;
+    background-color: #ff7506;
+    border-radius: 4px;
+    color: white;
+  }
+
+  .ant-pagination-prev {
+    font-size: 18px;
+    color: #a9a9b0;
+  }
+
+  .ant-pagination-next {
+    font-size: 18px;
+    color: #a9a9b0;
+  }
+}
+
+//custom datepicker antd
+.ant-picker {
+  width: 308px;
+  height: 44px;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+  .ant-picker-input {
+    background: #ffffff;
+    border: 1.5px solid #d4d4d7;
+    border-radius: 8px;
+    width: 150px;
+    height: 100%;
+    padding-left: 48px;
+  }
+  .ant-picker-range-separator {
+    display: flex;
+    align-items: center;
+    .ant-picker-separator {
+      background-image: url("./assets/icon/arrowCalendar.png");
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      height: 4.5px;
+      width: 5px;
+      .anticon-swap-right {
+        display: none;
+      }
+    }
+  }
+}
+
+//dropdown datepicker
+.ant-picker-dropdown {
+  background: #ffffff;
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.25);
+  width: 320px;
+  height: 336px;
+  border-radius: 8px;
+  padding-bottom: 0 !important;
+  .ant-picker-range-wrapper {
+    display: block;
+    height: 100%;
+    .ant-picker-panels {
+      width: 100%;
+      height: 100%;
+      display: block;
+      .ant-picker-panel {
+        height: 100%;
+      }
+    }
+  }
+  .ant-picker-panel-container {
+    height: 100%;
+    .ant-picker-datetime-panel {
+      display: block;
+      height: 100%;
+      .ant-picker-date-panel {
+        display: block;
+        width: 100%;
+        height: 100%;
+        .ant-picker-header {
+          margin: 5px 0;
+          .ant-picker-header-next-btn {
+            margin-right: 10px;
+            .ant-picker-next-icon {
+              color: #ff7506;
+            }
+          }
+          .ant-picker-header-prev-btn {
+            margin-left: 10px;
+            .ant-picker-prev-icon {
+              color: #ff7506;
+            }
+          }
+          .ant-picker-header-super-prev-btn {
+            display: none;
+          }
+          .ant-picker-header-super-next-btn {
+            display: none;
+          }
+          .ant-picker-header-view {
+            .ant-picker-month-btn {
+              color: #ff7506;
+              font-family: "Nunito";
+              font-style: normal;
+              font-weight: 700;
+              font-size: 16px;
+              line-height: 22px;
+            }
+            .ant-picker-year-btn {
+              color: #ff7506;
+              font-family: "Nunito";
+              font-style: normal;
+              font-weight: 700;
+              font-size: 16px;
+              line-height: 22px;
+            }
+          }
+        }
+        .ant-picker-body {
+          height: 100%;
+          .ant-picker-content {
+            width: 100%;
+            height: 100%;
+            thead {
+              tr {
+                th {
+                  font-family: "Nunito";
+                  font-style: normal;
+                  font-weight: 700;
+                  font-size: 14px;
+                  line-height: 19px;
+                  color: #ff9138;
+                }
+              }
+            }
+            tbody {
+              tr {
+                td {
+                  font-family: "Nunito";
+                  font-style: normal;
+                  font-weight: 600;
+                  font-size: 14px;
+                  line-height: 19px;
+                }
+                .ant-picker-cell-in-view {
+                  color: #535261;
+                }
+                .ant-picker-cell-in-range {
+                  &::before {
+                    background-color: #fff2e7;
+                  }
+                }
+                .ant-picker-cell-today {
+                  .ant-picker-cell-inner {
+                    &::before {
+                      border: none !important;
+                    }
+                  }
+                }
+                .ant-picker-cell-disabled {
+                  &::before {
+                    background-color: transparent;
+                  }
+                }
+                .ant-picker-cell-range-start {
+                  &::before {
+                    background-color: #fff2e7;
+                  }
+                  .ant-picker-cell-inner {
+                    background: #ff7506;
+                    border-radius: 8px;
+                    width: 36px;
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  }
+                }
+                .ant-picker-cell-selected {
+                  .ant-picker-cell-inner {
+                    background: #ff7506;
+                    border-radius: 8px;
+                    width: 36px;
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      .ant-picker-time-panel {
+        display: none;
+      }
+    }
+    .ant-picker-footer {
+      display: none;
+    }
+  }
+}
+
+//form input antd
+.formInput {
+  .formInput__bottom {
+    margin-right: 64px;
+    .formInput__bottomGroupInput {
+      margin-bottom: 16px;
+      .label-input {
+        margin-bottom: 8px !important;
+      }
+    }
+    .formInput__bottomTextDanger {
+      margin-top: 18px;
+      padding-bottom: 77px;
+    }
+    .formInput__bottomButton {
+      padding-top: 24px;
+      padding-bottom: 32px;
+      .formInput__bottomSubmit {
+        margin-left: 32px;
+      }
+    }
+  }
+}
+
+//checkbox antd
+.ant-checkbox-wrapper {
+  .ant-checkbox {
+    width: 20px;
+    height: 20px;
+    .ant-checkbox-input {
+      width: 20px;
+      height: 20px;
+    }
+    .ant-checkbox-inner {
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid #4277ff;
+      border-radius: 4px;
+    }
+  }
+}
+
+button {
+  &:focus {
+    outline: none;
+  }
+}
