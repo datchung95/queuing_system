@@ -1,0 +1,19 @@
+@import "../../style//Helper/mixin";
+
+#number {
+    .number__bottom {
+        .number__input {
+            margin-top: 4px;
+            .ant-select-selector {
+                @include styleText(#535261, 16px, 400, 24px);
+                height: 44px;
+            }
+        }
+        .number__table {
+            margin-top: 16px;
+            .number__tableLayout {
+                filter: drop-shadow(2px 2px 8px rgba(232, 239, 244, 0.8));
+            }
+        }
+    }
+}

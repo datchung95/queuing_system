@@ -1,0 +1,198 @@
+@import "../../style/Helper/mixin";
+
+#dashboard {
+    p {
+        margin-bottom: 0;
+    }
+    .dashboard__number {
+        background-color: white;
+        filter: drop-shadow(2px 2px 15px rgba(70, 64, 67, 0.1));
+        border-radius: 12px;
+        padding-top: 14px;
+        padding-left: 12px;
+        padding-right: 21px;
+        padding-bottom: 7px;
+        margin-bottom: 12px;
+        .dashboard__numberTop {
+            margin-bottom: 12px;
+            .dashboard__numberTopText {
+                @include styleText(#535261, 14px, 700, 18px);
+                margin-left: 12px;
+            }
+        }
+        .dashboard__numberBottom {
+            .dashboard__numberBottomRes {
+                @include styleText(#535261, 30px, 700, 45px);
+                width: 108px;
+                height: 45px;
+                text-align: center;
+            }
+            .dashboard__numberBottomUpDown {
+                background: rgba(255, 149, 1, 0.15);
+                border-radius: 7.18115px;
+                width: 48px;
+                height: 14.98px;
+                .dashboard__numberBottomUpDownImg {
+                    width: 6px;
+                    height: 6px;
+                    margin-right: 3px;
+                }
+                .dashboard__numberBottomUpDownText {
+                    @include styleText(#ff9138, 8px, 400, 12px);
+                }
+            }
+        }
+    }
+
+    .dashboard__chart {
+        background: #ffffff;
+        border-radius: 12px;
+        height: 580px;
+        .dashboard__chartContent {
+            padding-top: 24px;
+            padding-bottom: 33px;
+            padding-right: 24px;
+            padding-left: 24px;
+            .dashboard__chartContentTop {
+                .dashboard__chartContentTopLeft {
+                    .dashboard__chartTitle {
+                        @include styleText(#282739, 20px, 700, 30px);
+                        margin-bottom: 4px;
+                    }
+                    .dashboard__chartPicker {
+                        span {
+                            @include styleText(#a9a9b0, 14px, 400, 21px);
+                        }
+                        .ant-picker {
+                            background-color: transparent;
+                            border: none;
+                            padding: 0;
+                            .ant-picker-input > input[disabled] {
+                                @include styleText(#a9a9b0, 14px, 400, 21px);
+                            }
+                            .ant-picker-suffix {
+                                display: none;
+                            }
+                        }
+                    }
+                }
+                .dashboard__chartContentTopRight {
+                    .dashboard__chartViewSelect {
+                        @include styleText(#282739, 16px, 600, 24px);
+                    }
+                    .dashboard__chartSelect {
+                        margin-left: 8px;
+                        .ant-select-selector {
+                            @include styleText(#7e7d88, 16px, 400, 24px);
+                            height: 42px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .dashboard__right {
+        background-color: white;
+        padding-left: 24px;
+        padding-right: 24px;
+        padding-bottom: 29px;
+        .dashboard__rightContent {
+            margin-top: 16px;
+            .text--titleBottom {
+                margin-bottom: 16px;
+            }
+            .dashboard__rightProgress {
+                box-shadow: 2px 2px 15px rgba(70, 64, 67, 0.1);
+                border-radius: 12px;
+                margin-bottom: 12px;
+                padding-left: 16px;
+                padding-top: 11px;
+                padding-bottom: 12px;
+                .dashboard__rightProgressNumber {
+                    @include styleText(#535261, 24px, 800, 36px);
+                }
+                .dashboard__rightProgressIconText {
+                    margin-left: 4px;
+                }
+                .dashboard__rightProgressIconTextOrange {
+                    @include styleText(#ff7506, 14px, 600, 21px);
+                }
+                .dashboard__rightProgressIconTextGreen {
+                    @include styleText(#35c75a, 14px, 600, 21px);
+                }
+                .dashboard__rightProgressIconTextBlue {
+                    @include styleText(#4277ff, 14px, 600, 21px);
+                }
+                .dashboard__rightProgressWork {
+                    margin-left: 37px;
+                    .dashboard__rightProgressWorkText {
+                        @include styleText(#7e7d88, 12px, 400, 21px);
+                        width: 96px;
+                        margin-right: 3px;
+                    }
+                    .dashboard__rightProgressWorkNumberOrange {
+                        @include styleText(#ff7506, 14px, 700, 18px);
+                    }
+                    .dashboard__rightProgressWorkNumberGreen {
+                        @include styleText(#35c75a, 14px, 700, 18px);
+                    }
+                    .dashboard__rightProgressWorkNumberBlue {
+                        @include styleText(#4277ff, 14px, 700, 18px);
+                    }
+                }
+            }
+        }
+        .dashboard__calendar {
+            width: 353px;
+            box-shadow: 2px 2px 15px rgba(70, 64, 67, 0.1);
+            border-radius: 12px;
+            padding: 16px 29px;
+            table {
+                tr {
+                    th {
+                        padding-top: 9px;
+                        padding-bottom: 25px;
+                        .dashboard__calendarMonth {
+                            margin-left: 8px;
+                            margin-right: 5px;
+                        }
+                        span {
+                            @include styleText(#ff7506, 16px, 700, 21.82px);
+                        }
+                    }
+                    td {
+                        .ant-picker-calendar-date-today {
+                            background-color: #ff7506;
+                            border-radius: 8px;
+                            color: white;
+                            &::before {
+                                border: none;
+                            }
+                        }
+                        .ant-picker-calendar-date {
+                            height: 36px;
+                            width: 36px;
+                            .ant-picker-calendar-date-value {
+                                height: 100%;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                font-family: "Nunito", sans-serif;
+                            }
+                        }
+                    }
+                    .ant-picker-cell-selected {
+                        .ant-picker-calendar-date {
+                            background-color: #ff7506;
+                            border-radius: 8px;
+                            &::before {
+                                border: none;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

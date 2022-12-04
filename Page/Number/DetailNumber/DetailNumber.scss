@@ -1,0 +1,17 @@
+@import "../../../style/Helper/mixin";
+
+#detailNumber {
+    .detailNumber__bottom {
+        height: 604px;
+        margin-bottom: 50px;
+        .detailNumber__info {
+            margin-bottom: 16px;
+        }
+        .detailNumber__infoTitle {
+            @include styleText(#282739, 16px, 600, 24px);
+        }
+        .detailNumber__infoText {
+            @include styleText(#535261, 16px, 400, 24px);
+        }
+    }
+}

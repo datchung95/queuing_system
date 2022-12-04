@@ -1,0 +1,58 @@
+@import "../../../style/Helper/mixin";
+
+.modalNumber {
+    .ant-modal-content {
+        width: 469px;
+        height: 385px;
+        background: #ffffff;
+        border-radius: 24px;
+        .ant-modal-close {
+            .ant-modal-close-x {
+                color: #FF9138;
+            }
+        }
+        .ant-modal-body {
+            height: 100%;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .ant-modal-footer {
+            display: none;
+        }
+    }
+    .modalNumber__top {
+        padding-top: 48px;
+        padding-bottom: 44px;
+        padding-left: 74px;
+        padding-right: 74px;
+        .modalNumber__topTitleTitle {
+            @include styleText(#535261, 32px, 700, 48px);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .modalNumber__topSTT {
+            @include styleText(#FF7506, 56px, 800, 60px);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .modalNumber__topService {
+            @include styleText(#282739, 18px, 400, 27px);
+            text-align: center;
+            .modalNumber__topText {
+                font-weight: bold;
+            }
+        }
+    }
+    .modalNumber__bottom {
+        background-color: #FF9138;
+        padding: 16px 67px;
+        border-end-start-radius: 24px;
+        border-end-end-radius: 24px;
+        .modalNumber__bottomTime {
+            @include styleText(#FFFFFF, 22px, 700, 33px);
+            margin-bottom: 12px;
+        }
+    }
+}

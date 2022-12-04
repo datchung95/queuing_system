@@ -1,0 +1,33 @@
+@import "../../../style//Helper/mixin";
+
+#addNumber {
+    .content--padding--block {
+        margin-right: 24px;
+        height: 604px;
+        .addService__title {
+            @include styleText(#FF7506, 32px, 700, 48px);
+            margin-top: 20px;
+            text-align: center
+        }
+        .addService__formSelect {
+            text-align: center;
+            .addService__formLabel {
+                @include styleText(#535261, 20px, 700, 30px);
+                margin-bottom: 12px;
+            }
+            .addService__form {
+                text-align: start;
+            }
+        }
+        .addService__button {
+            margin-top: 80px;
+            .addService__buttonCancel {
+                margin-right: 32px;
+                padding: 13px 30px;
+            }
+            .addService__buttonSubmit {
+                padding: 13px 40px;
+            }
+        }
+    }
+}

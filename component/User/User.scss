@@ -1,0 +1,36 @@
+@import "../../style/Helper/mixin";
+
+.ant-dropdown {
+    .ant-dropdown-menu {
+        margin-top: 27px;
+        padding: 0;
+        max-height: 250px;
+        overflow: auto;
+        box-shadow: 2px 2px 15px rgba(70, 64, 67, 0.1);
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        .ant-dropdown-menu-item {
+            .itemDropdown-bottom {
+                padding-left: 24px;
+                h4 {
+                    @include styleText(#bf5805, 16px, 700, 24px);
+                }
+                p {
+                    @include styleText(#535261, 16px, 400, 24px);
+                }
+            }
+            &:first-child {
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+                background-color: #ff9138;
+                margin-bottom: 16px;
+                .itemDropdown-top {
+                    @include styleText(white, 20px, 700, 30px);
+                    padding-top: 9px;
+                    padding-bottom: 9px;
+                    padding-left: 24px;
+                }
+            }
+        }
+    }
+}
