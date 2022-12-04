@@ -1,56 +1,121 @@
-import React from 'react'
+import { Input } from 'antd'
+import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import React, { useEffect, useRef, useState } from 'react'
 import User from '../../component/User/User'
+import database from '../../configFirebase'
+import { useAppDispatch, useAppSelector } from '../../redux/hook'
+import { getUserProfileReducer } from '../../redux/Reducers/UserReducer/UserReducer'
+import { USER_LOGIN_ID } from '../../util/Const/Const'
+import { storage } from '../../configFirebase'
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import './Profile.scss'
+import openNotificationWithIcon from '../../Notification/Notification'
 
 export default function Profile() {
+
+    let userLogin: any = useRef({});
+
+    const [openButton, setOpenButton] = useState("none");
+
+    const [imgUpload, setImgUpload] = useState<any>(null);
+
+    const dispatch = useAppDispatch()
+
+    const userProfile = useAppSelector(state => state.UserReducer.userProfile);
+
+    useEffect(() => {
+        const getDataUserLogin = async () => {
+            let userLoginID: string = localStorage.getItem(USER_LOGIN_ID) as string
+            const docSnap = await getDoc(doc(database, "User", userLoginID));
+            if (docSnap.exists()) {
+                userLogin.current = {...docSnap.data(), id: docSnap.id, token: docSnap.id}
+                dispatch(getUserProfileReducer(userLogin.current))
+            }
+        }
+        getDataUserLogin();
+    }, [])
+
+    const handleChangeFile = async (e: any) => {
+        await setImgUpload(e.target.files[0]);
+        setOpenButton("inline");
+    }
+
+    const upLoadImgFirebase = () => {
+        if (imgUpload === null) return;
+        const imageRef = ref(storage, `image/${imgUpload.name}`)
+        setOpenButton("none");
+        uploadBytes(imageRef, imgUpload).then((snapshot) => {
+            openNotificationWithIcon("success", "Thay đổi ảnh thành công");
+            getDownloadURL(ref(storage, `image/${imgUpload.name}`)).then( async (url) => {
+                let userLoginID: string = localStorage.getItem(USER_LOGIN_ID) as string
+                await updateDoc(doc(database, "User", userLoginID), {img: url})
+                window.location.reload();
+            })
+        })
+    }
+
     return (
         <div id='profile' className='container-page'>
-            <div className='d-flex justify-content-between align-items-center profile__header container-page-header'>
-                <h4 className='text--titleDashboard profile__title'>Thông tin cá nhân</h4>
-                <User />
+            <div className='container-fluid profile__header'>
+                <div className='row'>
+                    <div className='col-9'>
+                        <h4 className='text--titleDashboard profile__title padding-title'>Thông tin cá nhân</h4>
+                    </div>
+                    <div className='col-3'>
+                        <User />
+                    </div>
+                </div>
             </div>
             <div className='profile__content position-relative container-fluid'>
-                <div className='row'>
-                    <div className='profile__contentLeft col-3 d-flex justify-content-center'>
-                        <div>
+                <div className='profile__contentRow'>
+                    <div className='row'>
+                        <div className='profile__contentLeft col-3 d-flex justify-content-center'>
                             <div>
                                 <div>
-                                    <img className='profile__contentLeftAvatar' src={require("../../assets/group/unsplash_Fyl8sMC2j2Q.png")} alt="camera" />
+                                    <div>
+                                        <img className='profile__contentLeftAvatar' src={userProfile.img} alt="camera" />
+                                    </div>
+                                    <div>
+                                        <label style={{ cursor: 'pointer' }}>
+                                            <img className='profile__contentLeftIcon' src={require("../../assets/icon/Camera.png")} alt="camera" />
+                                            <input accept="image/png, image/jpeg, image/jpg" onChange={handleChangeFile} type="file" style={{ visibility: "hidden" }} />
+                                        </label>
+                                        <div className='text-center'>
+                                            <button onClick={upLoadImgFirebase} className='btn btn-danger' style={{ display: `${openButton}` }}>Đổi ảnh</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <img className='profile__contentLeftIcon' src={require("../../assets/icon/Camera.png")} alt="camera" />
+                                <p className='profile__contentLeftName'>{userProfile.tenNguoiDung}</p>
                             </div>
-                            <p className='profile__contentLeftName'>Lê Quỳnh Ái Vân</p>
                         </div>
-                    </div>
-                    <div className='profile__contentRight col-9'>
-                        <div className='container'>
+                        <div className='profile__contentRight col-9'>
                             <div className='row'>
                                 <div className='col-6'>
                                     <div style={{ marginBottom: "24px" }}>
                                         <label>Tên người dùng</label>
-                                        <input value="Lê Quỳnh Ái Vân" disabled={true} className="form-control" />
+                                        <Input value={userProfile.tenNguoiDung} disabled={true} />
                                     </div>
                                     <div style={{ marginBottom: "24px" }}>
                                         <label>Số điện thoại</label>
-                                        <input value="0767375921" disabled={true} className="form-control" />
+                                        <Input value={userProfile.soDienThoai} disabled={true} />
                                     </div>
                                     <div>
                                         <label>Email</label>
-                                        <input value="adminSS01@domain.com" disabled={true} className="form-control" />
+                                        <Input value={userProfile.email} disabled={true} />
                                     </div>
                                 </div>
                                 <div className='col-6'>
                                     <div style={{ marginBottom: "24px" }}>
                                         <label>Tên đăng nhập</label>
-                                        <input value="lequynhaivan01" disabled={true} className="form-control" />
+                                        <Input value={userProfile.tenDangNhap} disabled={true} />
                                     </div>
-                                    <div style={{ marginBottom: "24px" }}> 
+                                    <div style={{ marginBottom: "24px" }}>
                                         <label>Mật khẩu</label>
-                                        <input value="311940211" disabled={true} className="form-control" />
+                                        <Input value={userProfile.matKhau} disabled={true} />
                                     </div>
                                     <div>
                                         <label>Vai trò</label>
-                                        <input value="Kế toán" disabled={true} className="form-control" />
+                                        <Input value={userProfile.vaiTro} disabled={true} />
                                     </div>
                                 </div>
                             </div>

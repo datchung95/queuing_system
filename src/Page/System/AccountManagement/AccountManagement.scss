@@ -1,0 +1,43 @@
+@import "../../../style/Helper/mixin";
+
+#accountManagement {
+    .accountManagement__bottom {
+        .accountManagement__input {
+            margin-top: 4px;
+            .ant-select-selector {
+                @include styleText(#535261, 16px, 400, 24px);
+                height: 44px;
+            }
+        }
+        .accountManagement__table {
+            margin-top: 16px;
+            .accountManagement__tableLayout {
+                filter: drop-shadow(2px 2px 8px rgba(232, 239, 244, 0.8));
+            }
+        }
+    }
+}
+
+.formService {
+    .ant-select-selection-overflow {
+        .ant-select-selection-overflow-item {
+            .ant-select-selection-item {
+                background-color: #ffac6a;
+                color: white;
+                box-shadow: 0px 0px 6px #e7e9f2;
+                border-radius: 9px;
+            }
+            .ant-select-selection-item-remove {
+                color: white;
+            }
+        }
+    }
+    .formInput__bottom {
+        .formInput__bottomGroupInput {
+            .addService__inputDes {
+                height: 140px !important;
+                resize: none;
+            }
+        }
+    }
+}

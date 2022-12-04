@@ -1,0 +1,19 @@
+@import "../../style/Helper/mixin";
+
+#device {
+    .device__bottom {
+        .device__input {
+            margin-top: 4px;
+            .ant-select-selector {
+                @include styleText(#535261, 16px, 400, 24px);
+                height: 44px;
+            }
+        }
+        .device__table {
+            margin-top: 16px;
+            .device__tableLayout {
+                filter: drop-shadow(2px 2px 8px rgba(232, 239, 244, 0.8));
+            }
+        }
+    }
+}
