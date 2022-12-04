@@ -21,7 +21,6 @@ export default function AddNumber() {
     const arrService = useAppSelector(state => state.ServiceReducer.arrService);
 
     const userProfile = useAppSelector(state => state.UserReducer.userProfile);
-    console.log(userProfile)
 
     let userLogin: any = useRef({})
 
