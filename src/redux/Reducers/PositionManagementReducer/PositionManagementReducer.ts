@@ -69,6 +69,7 @@ const PositionManagementReducer = createSlice({
     initialState,
     reducers: {
         getListPositionManagementReducer: (state, action) => {
+            state.addSubmit = false
             state.listPosition = action.payload
         },
         addPositionManagementReducer: (state, action) => {
@@ -104,12 +105,14 @@ const PositionManagementReducer = createSlice({
             let indexDetailUp = state.listPosition.findIndex(item => item.tenVaiTro === action.payload.up);
             let indexDetailDown = state.listPosition.findIndex(item => item.tenVaiTro === action.payload.down);
             if (indexDetailUp !== -1) {
-                state.listPosition[indexDetailUp].soNguoiDung ++;
-                state.upPosition = state.listPosition[indexDetailUp];
-                state.listSearch.push(state.upPosition);
+                if (action.payload.up !== action.payload.down) {
+                    state.listPosition[indexDetailUp].soNguoiDung++;
+                    state.upPosition = state.listPosition[indexDetailUp];
+                    state.listSearch.push(state.upPosition);
+                }
             }
             if (indexDetailDown !== -1) {
-                state.listPosition[indexDetailDown].soNguoiDung --;
+                state.listPosition[indexDetailDown].soNguoiDung--;
                 state.downPosition = state.listPosition[indexDetailDown];
                 state.listSearch.push(state.downPosition);
             }

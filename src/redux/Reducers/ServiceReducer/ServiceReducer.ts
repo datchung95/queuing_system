@@ -105,6 +105,8 @@ const ServiceReducer = createSlice({
     initialState,
     reducers: {
         getAllServiceReducer: (state, action) => {
+            state.addSubmit = false
+            state.updateSubmit = false
             state.arrService = action.payload
         },
         addServiceReducer: (state, action) => {

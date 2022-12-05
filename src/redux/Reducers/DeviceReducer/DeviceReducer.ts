@@ -59,6 +59,8 @@ const DeviceReducer = createSlice({
     initialState,
     reducers: {
         getAllDevices: (state, action) => {
+            state.subMitAdd = false
+            state.subMitUpdate = false
             state.arrDevice = action.payload
         },
         dropdownTextServiceReducer: (state, action) => {

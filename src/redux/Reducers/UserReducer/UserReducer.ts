@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit'
-import openNotificationWithIcon from '../../../Notification/Notification';
 import { TOKEN, USER_LOGIN_ID } from '../../../util/Const/Const';
 import history from '../../../util/History/history';
 
@@ -128,6 +127,7 @@ const UserReducer = createSlice({
     initialState,
     reducers: {
         getDataUserReducer: (state, action) => {
+            state.subMit = false
             state.arrUser = action.payload
         },
         textUserReducer: (state, action) => {
@@ -170,7 +170,6 @@ const UserReducer = createSlice({
             delete action.payload.nhapLaiMatKhau
             let index = state.arrUser.findIndex(item => item.email === action.payload.email);
             if (index !== -1) {
-                openNotificationWithIcon("error", "Email đã tồn tại");
                 state.subMit = false;
             } else {
                 state.addUser = action.payload;
@@ -185,7 +184,6 @@ const UserReducer = createSlice({
             state.arrUserUpdate = state.arrUser.filter(item => item.id !== action.payload.idUser.id);
             let index = state.arrUserUpdate.findIndex(item => item.email === action.payload.value.email);
             if (index !== -1) {
-                openNotificationWithIcon("error", "Email đã tồn tại");
                 state.subMit = false;
             } else {
                 state.updateUser = action.payload.value;
