@@ -110,7 +110,7 @@ export default function PositionManagement() {
                                         name="keyWord"
                                         onChange={formik.handleChange}
                                     />
-                                    <button type='submit' style={{ border: "none", backgroundColor: "transparent", position: "absolute", top: "25%", right: "3%" }}><SearchOutlined style={{ color: "#FF7506", fontSize: "20px" }} /></button>
+                                    <button type='submit' style={{ border: "none", backgroundColor: "transparent", position: "absolute", top: "48%", right: "3%" }}><SearchOutlined style={{ color: "#FF7506", fontSize: "20px" }} /></button>
                                 </form>
                             </div>
                             <div className='positionManagement__table'>

@@ -8,8 +8,8 @@ import { RightOutlined, CaretDownOutlined } from '@ant-design/icons';
 import { Input, Select, Checkbox } from 'antd';
 import "../Service.scss";
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import { addServiceReducer } from '../../../redux/Reducers/ServiceReducer/ServiceReducer';
-import { addDoc, collection, doc, getDoc, setDoc } from 'firebase/firestore';
+import { addServiceReducer, getAllServiceReducer } from '../../../redux/Reducers/ServiceReducer/ServiceReducer';
+import { addDoc, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import database from '../../../configFirebase';
 import { USER_LOGIN_ID } from '../../../util/Const/Const';
 import { getUserProfileReducer } from '../../../redux/Reducers/UserReducer/UserReducer';
@@ -28,6 +28,8 @@ export default function AddService() {
     const navigate = useNavigate();
 
     let userLogin: any = useRef({})
+
+    let service: any[] = [];
 
     useEffect(() => {
         const getDataUserLogin = async () => {
@@ -48,29 +50,34 @@ export default function AddService() {
             moTa: "",
             tenDichVu: "",
             trangThaiHoatDong: "",
+            soTang: "0000",
             quyTacCapSo: {
                 prefix: false,
                 surfix: false,
                 tangTuDong: false,
                 reset: false
-            },
-            soTang: "000"
+            }
         },
         validationSchema: Yup.object().shape({
             maDichVu: Yup.string().trim().required("Mã dịch vụ là trường bắt buộc"),
             tenDichVu: Yup.string().trim().required("Tên dịch vụ là trường bắt buộc")
         }),
-        onSubmit: async (value) => {
-            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm dịch vụ ${value.tenDichVu}`, IPThucHien: "192.168.1.1", thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
+        onSubmit: (value) => {
             dispatch(addServiceReducer(value))
         }
     })
 
     const addServiceFirestore = async () => {
         if (addSubmit) {
-            await setDoc(doc(database, "Services", addService.maDichVu), addService);
+            await setDoc(doc(database, "Services", addService.maDichVu), {...addService, soTang: "0000"});
+            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm dịch vụ ${addService.tenDichVu}`, IPThucHien: "192.168.1.1", thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
+            const getService = await getDocs(collection(database, "Services"));
+            getService.forEach((doc) => {
+                service.push(doc.data())
+            });
+            await dispatch(getAllServiceReducer(service))
             await navigate("/service")
-            window.location.reload();
+            window.location.reload()
         }
     }
     addServiceFirestore()

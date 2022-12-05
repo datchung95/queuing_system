@@ -8,9 +8,9 @@ import "../AccountManagement.scss"
 import { useFormik } from 'formik';
 import * as Yup from "yup"
 import { useAppDispatch, useAppSelector } from '../../../../redux/hook';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import database from '../../../../configFirebase';
-import { getDetailUserAccountReducer, updateUserAccountReducer } from '../../../../redux/Reducers/UserReducer/UserReducer';
+import { getDataUserReducer, getDetailUserAccountReducer, updateUserAccountReducer } from '../../../../redux/Reducers/UserReducer/UserReducer';
 import openNotificationWithIcon from '../../../../Notification/Notification';
 import { updateUpDownUserPositionReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
 
@@ -32,7 +32,22 @@ export default function UpdateAccount() {
 
     const idUser = useParams();
 
-    const userRef = useRef({})
+    let userRef = useRef({})
+
+    let user: any[] = [];
+
+    useEffect(() => {
+        const getData = async () => {
+            const querySnapshot = await getDocs(collection(database, "User"));
+            querySnapshot.forEach((doc) => {
+                user.push({ ...doc.data(), id: doc.id, token: doc.id })
+            });
+            dispatch(getDataUserReducer(user));
+        }
+        getData();
+    }, [])
+
+    
 
     const getDetailUserAccount = async () => {
         let id: string = idUser.id as string
@@ -99,7 +114,7 @@ export default function UpdateAccount() {
             await setDoc(doc(database, "ListPosition", arrUpDownPosition[2].id), arrUpDownPosition[2]);
             await setDoc(doc(database, "User", id), updateUser);
             await getDetailUserAccount();
-            await navigate("/system/accountmanagement");
+            await navigate("/system/accountmanagement")
             window.location.reload()
         }
     }

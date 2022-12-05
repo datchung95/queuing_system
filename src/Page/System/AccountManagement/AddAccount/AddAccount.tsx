@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import User from '../../../../component/User/User'
 import { RightOutlined } from '@ant-design/icons';
 import { Input, Select } from 'antd';
@@ -8,11 +8,11 @@ import "../AccountManagement.scss"
 import { useFormik } from 'formik';
 import * as Yup from "yup"
 import { useAppDispatch, useAppSelector } from '../../../../redux/hook';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, setDoc } from 'firebase/firestore';
 import database from '../../../../configFirebase';
-import { addUserAccountReducer } from '../../../../redux/Reducers/UserReducer/UserReducer';
+import { addUserAccountReducer, getDataUserReducer } from '../../../../redux/Reducers/UserReducer/UserReducer';
 import openNotificationWithIcon from '../../../../Notification/Notification';
-import { addUpUserPositionReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { addUpUserPositionReducer, getListPositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
 
 export default function AddAccount() {
 
@@ -24,9 +24,24 @@ export default function AddAccount() {
 
     const addUser = useAppSelector(state => state.UserReducer.addUser);
 
+    const arrUser = useAppSelector(state => state.UserReducer.arrUser);
+
     const detailPosition = useAppSelector(state => state.PositionManagementReducer.detailPosition);
 
     const navigate = useNavigate();
+
+    let user: any[] = [];
+
+    useEffect(() => {
+        const getData = async () => {
+            const querySnapshot = await getDocs(collection(database, "User"));
+            querySnapshot.forEach((doc) => {
+                user.push({ ...doc.data(), id: doc.id, token: doc.id })
+            });
+            dispatch(getDataUserReducer(user));
+        }
+        getData();
+    }, [])
 
     let truePass: boolean = true;
 
@@ -61,8 +76,13 @@ export default function AddAccount() {
         onSubmit: (value) => {
             value.img = "https://picsum.photos/1";
             if (value.matKhau === value.nhapLaiMatKhau) {
-                dispatch(addUpUserPositionReducer(value.vaiTro))
-                dispatch(addUserAccountReducer(value))
+                let indexMail = arrUser.findIndex(item => item.email === value.email);
+                if (indexMail !== -1) {
+                    openNotificationWithIcon("error", "Email đã tồn tại");
+                } else {
+                    dispatch(addUpUserPositionReducer(value.vaiTro))
+                    dispatch(addUserAccountReducer(value))
+                }
             } else {
                 openNotificationWithIcon("error", "Mật khẩu và nhập lại mật khẩu phải giống nhau");
             }
@@ -83,7 +103,7 @@ export default function AddAccount() {
             await setDoc(doc(database, "ListPosition", detailPosition.id), detailPosition)
             await addDoc(collection(database, "User"), addUser);
             await navigate("/system/accountmanagement")
-            window.location.reload();
+            window.location.reload()
         }
     }
     addUserAccountFirestore()

@@ -8,8 +8,8 @@ import { RightOutlined } from '@ant-design/icons';
 import { Input, Checkbox } from 'antd';
 import "../Service.scss";
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import { getServiceDetailReducer, updateServiceReducer } from '../../../redux/Reducers/ServiceReducer/ServiceReducer';
-import { addDoc, collection, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getAllServiceReducer, getServiceDetailReducer, updateServiceReducer } from '../../../redux/Reducers/ServiceReducer/ServiceReducer';
+import { addDoc, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import database from '../../../configFirebase';
 import moment from 'moment';
 
@@ -28,6 +28,8 @@ export default function UpdateService() {
     const navigate = useNavigate();
 
     let serviceDetailRef = useRef({})
+
+    let service: any[] = [];
 
     useEffect(() => {
         const getDataDetailDevice = async () => {
@@ -48,6 +50,7 @@ export default function UpdateService() {
             moTa: serviceDetail.moTa,
             tenDichVu: serviceDetail.tenDichVu,
             trangThaiHoatDong: serviceDetail.trangThaiHoatDong,
+            soTang: serviceDetail.soTang,
             quyTacCapSo: {
                 prefix: serviceDetail.quyTacCapSo.prefix,
                 surfix: serviceDetail.quyTacCapSo.surfix,
@@ -59,8 +62,7 @@ export default function UpdateService() {
             maDichVu: Yup.string().trim().required("Mã dịch vụ là trường bắt buộc"),
             tenDichVu: Yup.string().trim().required("Tên dịch vụ là trường bắt buộc")
         }),
-        onSubmit: async (value) => {
-            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin dịch vụ ${value.tenDichVu}`, IPThucHien: "192.168.1.1", thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
+        onSubmit: (value) => {
             dispatch(updateServiceReducer(value))
         }
     })
@@ -69,12 +71,18 @@ export default function UpdateService() {
         if (updateSubmit) {
             let maDichVu: string = maDichVuParam.maDichVu as string
             await setDoc(doc(database, "Services", maDichVu), serviceDetail);
+            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin dịch vụ ${serviceDetail.tenDichVu}`, IPThucHien: "192.168.1.1", thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
             const docSnap = await getDoc(doc(database, "Services", maDichVu));
             if (docSnap.exists()) {
                 serviceDetailRef.current = { ...docSnap.data(), id: docSnap.id }
                 dispatch(getServiceDetailReducer(serviceDetailRef.current))
             }
-            await navigate("/service");
+            const getService = await getDocs(collection(database, "Services"));
+            getService.forEach((doc) => {
+                service.push(doc.data())
+            });
+            await dispatch(getAllServiceReducer(service))
+            await navigate("/service")
             window.location.reload()
         }
     }

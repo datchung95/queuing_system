@@ -60,7 +60,7 @@ export default function AddNumber() {
             }
             let indexService = arrService.findIndex(item => item.maDichVu === value.maDichVu);
             if (indexService !== -1) {
-                let number: number = parseInt(arrService[indexService].soTang) + 1
+                let number: number = parseInt(arrService[indexService].soTang) + 1    
                 let numberString: string;
                 if (number <= 999 && number >= 100) {
                     numberString = "0" + number.toString();
@@ -69,10 +69,9 @@ export default function AddNumber() {
                 } else if (number <= 9 && number >= 0) {
                     numberString = "000" + number.toString();
                 } else {
-                    numberString = number.toString();
-                }
-                await updateDoc(doc(database, "Services", arrService[indexService].maDichVu), { soTang: numberString })
-                await updateDoc(doc(database, "Services", arrService[indexService].maDichVu), { ngayTang: moment(moment.now()).format("DD/MM/YYYY") })
+                    numberString = number.toString();          
+                }   
+                await updateDoc(doc(database, "Services", arrService[indexService].maDichVu), { soTang: numberString, ngayTang: moment(moment.now()).format("DD/MM/YYYY") })
                 value.stt = value.maDichVu + numberString;
             }
             value.thoiGianCap = moment(moment.now()).format("hh:mm - DD/MM/YYYY");

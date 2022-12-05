@@ -8,10 +8,10 @@ import { RightOutlined } from '@ant-design/icons';
 import { Input, List, Checkbox } from 'antd';
 import "../PositionManagement.scss"
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, getDocs } from 'firebase/firestore';
 import database from '../../../../configFirebase';
 import VirtualList from 'rc-virtual-list';
-import { addPositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { addPositionManagementReducer, getListPositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
 
 export default function AddPosition() {
 
@@ -22,6 +22,8 @@ export default function AddPosition() {
     const addPosition = useAppSelector(state => state.PositionManagementReducer.addPosition);
 
     const navigate = useNavigate();
+
+    let position: any[] = [];
 
     let tenVaiTroRef = useRef("");
 
@@ -54,8 +56,12 @@ export default function AddPosition() {
     const addPositionManagementFirestore = async () => {
         if (addSubmit) {
             await addDoc(collection(database, "ListPosition"), addPosition);
-            await navigate("/system/positionmanagement")
-            window.location.reload();
+            const getPosition = await getDocs(collection(database, "ListPosition"));
+            getPosition.forEach((doc) => {
+                position.push({ ...doc.data(), id: doc.id })
+            });
+            dispatch(getListPositionManagementReducer(position))
+            navigate("/system/positionmanagement")
         }
     }
     addPositionManagementFirestore()

@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react'
 import User from '../../../component/User/User'
 import { RightOutlined, CaretDownOutlined } from '@ant-design/icons';
-import { NavLink, useParams } from 'react-router-dom';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { Input, Select } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
-import { addDoc, collection, doc, getDoc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import database from '../../../configFirebase';
-import { getDetailDeviceReducer, updateDetailDeviceReducer } from '../../../redux/Reducers/DeviceReducer/DeviceReducer';
+import { getAllDevices, getDetailDeviceReducer, updateDetailDeviceReducer } from '../../../redux/Reducers/DeviceReducer/DeviceReducer';
 import { useFormik } from 'formik';
 import * as Yup from "yup"
 import "./updateDevice.scss"
@@ -28,6 +28,10 @@ export default function UpdateDevice() {
 
     const arrService = useAppSelector(state => state.ServiceReducer.arrService);
 
+    const navigate = useNavigate();
+
+    let device: any[] = [];
+
     useEffect(() => {
         const getDataDetailDevice = async () => {
             let maThietbi: string = maThietBiDetail.id as string
@@ -44,11 +48,19 @@ export default function UpdateDevice() {
         if (subMitUpdate) {
             let maThietbi: string = maThietBiDetail.id as string
             await setDoc(doc(database, "Devices", maThietbi), detailDevice);
+            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin thiết bị ${detailDevice.maThietBi}`, IPThucHien: detailDevice.diaChiIP, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
+
             const docSnap = await getDoc(doc(database, "Devices", maThietbi));
             if (docSnap.exists()) {
                 deviceDetail.current = { ...docSnap.data(), id: docSnap.id }
                 dispatch(getDetailDeviceReducer(deviceDetail.current))
             }
+            const getDevice = await getDocs(collection(database, "Devices"));
+            getDevice.forEach((doc) => {
+                device.push({ ...doc.data(), id: doc.id })
+            });
+            await dispatch(getAllDevices(device))
+            await navigate("/device")
             window.location.reload()
         }
     }
@@ -76,8 +88,7 @@ export default function UpdateDevice() {
             tenDangNhap: Yup.string().trim().required("Tên đăng nhập là trường bắt buộc"),
             matKhau: Yup.string().trim().required("Mật khẩu là trường bắt buộc")
         }),
-        onSubmit: async (value) => {
-            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin thiết bị ${value.maThietBi}`, IPThucHien: value.diaChiIP, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
+        onSubmit: (value) => {
             dispatch(updateDetailDeviceReducer(value));
         }
     })

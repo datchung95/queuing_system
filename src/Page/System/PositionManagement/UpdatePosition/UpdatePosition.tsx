@@ -8,10 +8,10 @@ import { RightOutlined } from '@ant-design/icons';
 import { Input, List, Checkbox } from 'antd';
 import "../PositionManagement.scss"
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import database from '../../../../configFirebase';
 import VirtualList from 'rc-virtual-list';
-import { getDetailPositionReducer, updatePositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { getDetailPositionReducer, getListPositionManagementReducer, updatePositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
 
 export default function UpdatePosition() {
     const dispatch = useAppDispatch();
@@ -25,6 +25,8 @@ export default function UpdatePosition() {
     const navigate = useNavigate();
 
     const idPosition = useParams();
+
+    let position: any[] = [];
 
     let detailPositionRef: any = useRef({})
 
@@ -68,8 +70,12 @@ export default function UpdatePosition() {
         if (addSubmit) {
             let id: string = idPosition.id as string
             await setDoc(doc(database, "ListPosition", id), updatePosition);
-            await navigate("/system/positionmanagement")
-            window.location.reload();
+            const getPosition = await getDocs(collection(database, "ListPosition"));
+            getPosition.forEach((doc) => {
+                position.push({ ...doc.data(), id: doc.id })
+            });
+            dispatch(getListPositionManagementReducer(position))
+            navigate("/system/positionmanagement")
         }
     }
     addPositionManagementFirestore()

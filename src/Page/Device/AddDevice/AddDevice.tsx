@@ -8,8 +8,8 @@ import "./AddDevice.scss"
 import { useFormik } from 'formik';
 import * as Yup from "yup"
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
-import { addDeviceReducer } from '../../../redux/Reducers/DeviceReducer/DeviceReducer';
-import { addDoc, collection, doc, getDoc } from 'firebase/firestore';
+import { addDeviceReducer, getAllDevices } from '../../../redux/Reducers/DeviceReducer/DeviceReducer';
+import { addDoc, collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import database from '../../../configFirebase';
 import moment from 'moment';
 import { USER_LOGIN_ID } from '../../../util/Const/Const';
@@ -30,6 +30,8 @@ export default function AddDevice() {
     const navigate = useNavigate();
 
     let userLogin: any = useRef({})
+
+    let device: any[] = [];
 
     useEffect(() => {
         const getDataUserLogin = async () => {
@@ -66,8 +68,7 @@ export default function AddDevice() {
             hoatDong: Yup.string().trim().required("Trạng thái hoạt động là trường bắt buộc"),
             ketNoi: Yup.string().trim().required("Trạng thái kết nối là trường bắt buộc")
         }),
-        onSubmit: async (value) => {
-            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm thiết bị ${value.maThietBi}`, IPThucHien: value.diaChiIP, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
+        onSubmit: (value) => {
             dispatch(addDeviceReducer(value));
         }
     })
@@ -84,8 +85,14 @@ export default function AddDevice() {
     const addDeviceFirestore = async () => {
         if (subMitAdd) {
             await addDoc(collection(database, "Devices"), newDevice);
+            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm thiết bị ${newDevice.maThietBi}`, IPThucHien: newDevice.diaChiIP, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
+            const getDevice = await getDocs(collection(database, "Devices"));
+            getDevice.forEach((doc) => {
+                device.push({ ...doc.data(), id: doc.id })
+            });
+            await dispatch(getAllDevices(device))
             await navigate("/device")
-            window.location.reload();
+            window.location.reload()
         }
     }
     addDeviceFirestore()
