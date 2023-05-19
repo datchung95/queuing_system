@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 interface Devices {
-    diaChiIP: string;
     dichVuSuDung: string[];
     hoatDong: string;
     ketNoi: string;
@@ -11,11 +10,11 @@ interface Devices {
     tenDangNhap: string;
     matKhau: string;
     id: string;
+    email: string;
 }
 
 let arrDevice: Devices[] = [
     {
-        diaChiIP: "",
         dichVuSuDung: [],
         hoatDong: "",
         ketNoi: "",
@@ -24,12 +23,12 @@ let arrDevice: Devices[] = [
         loaiThietBi: "",
         tenDangNhap: "",
         matKhau: "",
-        id: ""
+        id: "",
+        email: ""
     }
 ]
 
 let detailDevice: Devices = {
-    diaChiIP: "",
     dichVuSuDung: [],
     hoatDong: "",
     ketNoi: "",
@@ -38,17 +37,13 @@ let detailDevice: Devices = {
     loaiThietBi: "",
     tenDangNhap: "",
     matKhau: "",
-    id: ""
+    id: "",
+    email: ""
 }
-
-let subMit: boolean = false;
 
 const initialState = {
     arrDevice: arrDevice,
-    dropdownTextService: subMit,
     detailDevice: detailDevice,
-    subMitUpdate: subMit,
-    subMitAdd: subMit,
     newDevice: detailDevice,
     arrDeviceSearch: arrDevice,
     deviceSearch: detailDevice
@@ -59,22 +54,15 @@ const DeviceReducer = createSlice({
     initialState,
     reducers: {
         getAllDevices: (state, action) => {
-            state.subMitAdd = false
-            state.subMitUpdate = false
             state.arrDevice = action.payload
-        },
-        dropdownTextServiceReducer: (state, action) => {
-            state.dropdownTextService = action.payload
         },
         getDetailDeviceReducer: (state, action) => {
             state.detailDevice = action.payload
         },
         updateDetailDeviceReducer: (state, action) => {
-            state.subMitUpdate = true
             state.detailDevice = action.payload
         },
         addDeviceReducer: (state, action) => {
-            state.subMitAdd = true;
             state.newDevice = action.payload
         },
         searchActiveReducer: (state, action) => {
@@ -105,7 +93,6 @@ const DeviceReducer = createSlice({
 
 export const { 
     getAllDevices, 
-    dropdownTextServiceReducer, 
     getDetailDeviceReducer,
     updateDetailDeviceReducer,
     addDeviceReducer,

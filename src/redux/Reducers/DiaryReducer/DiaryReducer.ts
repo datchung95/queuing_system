@@ -3,7 +3,6 @@ import { createSlice } from '@reduxjs/toolkit'
 interface Diary {
     tenDangNhap: string;
     thoiGianTacDong: string;
-    IPThucHien: string;
     thaoTacThucHien: string;
     id: string;
 }
@@ -12,7 +11,6 @@ let arrDiary: Diary[] = [
     {
         tenDangNhap: "",
         thoiGianTacDong: "",
-        IPThucHien: "",
         thaoTacThucHien: "",
         id: ""
     }

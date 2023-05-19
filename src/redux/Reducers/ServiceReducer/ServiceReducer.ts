@@ -1,103 +1,39 @@
 import { createSlice } from '@reduxjs/toolkit'
-import openNotificationWithIcon from '../../../Notification/Notification';
 
 interface Service {
+    id: string;
     maDichVu: string;
     moTa: string;
     tenDichVu: string;
     trangThaiHoatDong: string;
-    soTang: string;
-    ngayTang: string;
-    quyTacCapSo: {
-        prefix: boolean,
-        surfix: boolean,
-        tangTuDong: boolean,
-        reset: boolean
-    },
-    chiTietInSo: [
-        {
-            stt: string,
-            trangThai: string,
-            thoiGianCap: string,
-            hanSuDung: string
-        }
-    ]
-}
-
-interface PrintNumber {
-    stt: string;
-    trangThai: string;
-    thoiGianCap: string;
-    hanSuDung: string;
+    email: string;
 }
 
 let arrService: Service[] = [
     {
         maDichVu: "",
+        id: "",
         moTa: "",
         tenDichVu: "",
         trangThaiHoatDong: "",
-        soTang: "",
-        ngayTang: "",
-        quyTacCapSo: {
-            prefix: false,
-            surfix: false,
-            tangTuDong: false,
-            reset: false
-        },
-        chiTietInSo: [
-            {
-                stt: "",
-                trangThai: "",
-                thoiGianCap: "",
-                hanSuDung: ""
-            }
-        ]
+        email: ""
     }
 ]
 
 let service: Service = {
+    id: "",
     maDichVu: "",
     moTa: "",
     tenDichVu: "",
-    soTang: "",
     trangThaiHoatDong: "",
-    ngayTang: "",
-    quyTacCapSo: {
-        prefix: false,
-        surfix: false,
-        tangTuDong: false,
-        reset: false
-    },
-    chiTietInSo: [
-        {
-            stt: "",
-            trangThai: "",
-            thoiGianCap: "",
-            hanSuDung: ""
-        }
-    ]
+    email: ""
 }
-
-let detailPrintNumber: PrintNumber[] = [
-    {
-        stt: "",
-        trangThai: "",
-        thoiGianCap: "",
-        hanSuDung: ""
-    }
-]
-
-let clickSubmit: boolean = false;
 
 const initialState = {
     arrService: arrService,
     addService: service,
-    addSubmit: clickSubmit,
     serviceDetail: service,
-    updateSubmit: clickSubmit,
-    arrSearchService: arrService,
-    detailPrintNumber: detailPrintNumber
+    arrSearchService: arrService
 }
 
 const ServiceReducer = createSlice({
@@ -105,25 +41,15 @@ const ServiceReducer = createSlice({
     initialState,
     reducers: {
         getAllServiceReducer: (state, action) => {
-            state.addSubmit = false
-            state.updateSubmit = false
             state.arrService = action.payload
         },
         addServiceReducer: (state, action) => {
-            let indexMaDichVu = state.arrService.findIndex(item => item.maDichVu === action.payload.maDichVu);
-            if (indexMaDichVu !== -1) {
-                openNotificationWithIcon("error", "Mã dịch vụ đã tồn tại");
-            } else {
-                state.addSubmit = true;
-                state.addService = action.payload;
-            }
+            state.addService = action.payload;
         },
         getServiceDetailReducer: (state, action) => {
             state.serviceDetail = action.payload
-            state.detailPrintNumber = state.serviceDetail.chiTietInSo
         },
         updateServiceReducer: (state, action) => {
-            state.updateSubmit = true;
             state.serviceDetail = action.payload;
         },
         searchActiveServiceReducer: (state, action) => {
@@ -142,28 +68,6 @@ const ServiceReducer = createSlice({
                 }
                 state.arrService = state.arrSearchService
             }
-        },
-        searchDetailServiceTrangThaiReducer: (state, action) => {
-            if (action.payload !== "Tất cả") {
-                state.detailPrintNumber = state.detailPrintNumber.filter(item => item.trangThai === action.payload);
-            }
-        },
-        searchDetailServiceTimeReducer: (state, action) => {
-            let arr = state.detailPrintNumber.filter(item => item.thoiGianCap.slice(8) === action.payload[0])
-            let arrNum = arr.filter(item => item.hanSuDung.slice(8) === action.payload[1]);
-            state.detailPrintNumber = arrNum
-        },
-        searchDetailServiceKeywordReducer: (state, action) => {
-            let arr: any[] = []
-            if (action.payload.keyWord !== "") {
-                for (let i in state.detailPrintNumber) {
-                    let index = state.detailPrintNumber[i].stt.search(action.payload.keyWord)
-                    if (index !== -1) {
-                        arr.push(state.detailPrintNumber[i])
-                    }
-                }
-                state.detailPrintNumber = arr;
-            }
         }
     }
 });
@@ -174,10 +78,7 @@ export const {
     getServiceDetailReducer,
     updateServiceReducer,
     searchActiveServiceReducer,
-    searchKeyWordNameServiceReducer,
-    searchDetailServiceTrangThaiReducer,
-    searchDetailServiceTimeReducer,
-    searchDetailServiceKeywordReducer,
+    searchKeyWordNameServiceReducer
 } = ServiceReducer.actions
 
 export default ServiceReducer.reducer

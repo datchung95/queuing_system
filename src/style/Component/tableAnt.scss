@@ -1,0 +1,75 @@
+.table-row-light {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid white;
+    overflow: hidden;
+}
+.table-row-orange {
+    background-color: #fff2e7;
+    border-radius: 12px;
+    border: 1px solid white;
+    overflow: hidden;
+}
+
+.ant-spin-container {
+    .ant-table-content {
+        background-color: #f5f6f8;
+        table {
+            border-radius: 12px !important;
+            overflow: hidden;
+            thead {
+                tr {
+                    th {
+                        background-color: #ff9138;
+                        color: white;
+                        &::before {
+                            height: 100% !important;
+                            background-color: #ffe3cd !important;
+                        }
+                    }
+                }
+            }
+            tbody {
+                td {
+                    &::before {
+                        position: absolute;
+                        top: 50%;
+                        right: 0;
+                        width: 1px;
+                        height: 100%;
+                        background-color: #ffe3cd;
+                        transform: translateY(-50%);
+                        transition: background-color 0.3s;
+                        content: "";
+                    }
+                    &:last-child::before {
+                        background-color: transparent !important;
+                    }
+                }
+            }
+        }
+    }
+
+    .ant-pagination-item {
+        border: none;
+        background-color: transparent;
+        color: #7e7d88;
+    }
+
+    .ant-pagination-item-active {
+        border: none;
+        background-color: #ff7506;
+        border-radius: 4px;
+        color: white;
+    }
+
+    .ant-pagination-prev {
+        font-size: 18px;
+        color: #a9a9b0;
+    }
+
+    .ant-pagination-next {
+        font-size: 18px;
+        color: #a9a9b0;
+    }
+}

@@ -1,6 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.scss';
+import './style/Component/checkboxAnt.scss';
+import './style/Component/datepickerAnt.scss';
+import './style/Component/formInputAnt.scss';
+import './style/Component/tableAnt.scss';
 import App from './App';
 import 'antd/dist/antd.css';
 import reportWebVitals from './reportWebVitals';

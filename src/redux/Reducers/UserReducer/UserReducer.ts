@@ -1,6 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { TOKEN, USER_LOGIN_ID } from '../../../util/Const/Const';
-import history from '../../../util/History/history';
+import { TOKEN } from '../../../util/Const/Const';
 
 interface User {
     id: string;
@@ -13,17 +12,9 @@ interface User {
     vaiTro: string;
     trangThaiHoatDong: string;
     img: string;
-    thoiGianCap: [
-        {
-            nguoiNhan: string;
-            thoiGianNhanSo: string
-        }
-    ];
 }
 
-let subMit: boolean = false;
-
-let errorPass: boolean = false;
+let truePass: boolean = true;
 
 let arrUser: User[] = [
     {
@@ -36,13 +27,7 @@ let arrUser: User[] = [
         token: "",
         vaiTro: "",
         trangThaiHoatDong: "",
-        img: "",
-        thoiGianCap: [
-            {
-                nguoiNhan: "",
-                thoiGianNhanSo: ""
-            }
-        ]
+        img: ""
     }
 ]
 
@@ -56,51 +41,7 @@ let userLogin: User = {
     token: "",
     vaiTro: "",
     trangThaiHoatDong: "",
-    img: "",
-    thoiGianCap: [
-        {
-            nguoiNhan: "",
-            thoiGianNhanSo: ""
-        }
-    ]
-}
-
-let userEmail: User = {
-    id: "",
-    email: "",
-    matKhau: "",
-    soDienThoai: "",
-    tenDangNhap: "",
-    tenNguoiDung: "",
-    token: "",
-    vaiTro: "",
-    trangThaiHoatDong: "",
-    img: "",
-    thoiGianCap: [
-        {
-            nguoiNhan: "",
-            thoiGianNhanSo: ""
-        }
-    ]
-}
-
-let userProfile: User = {
-    id: "",
-    email: "",
-    matKhau: "",
-    soDienThoai: "",
-    tenDangNhap: "",
-    tenNguoiDung: "",
-    token: "",
-    vaiTro: "",
-    img: "",
-    trangThaiHoatDong: "",
-    thoiGianCap: [
-        {
-            nguoiNhan: "",
-            thoiGianNhanSo: ""
-        }
-    ]
+    img: ""
 }
 
 if (localStorage.getItem(TOKEN)) {
@@ -110,16 +51,11 @@ if (localStorage.getItem(TOKEN)) {
 const initialState = {
     arrUser: arrUser,
     arrUserUpdate: arrUser,
-    userLogin: userLogin,
-    userEmail: userEmail,
-    userProfile: userProfile,
-    subMit: subMit,
-    subMitMail: subMit,
-    subMitChangePass: subMit,
-    errorPass: errorPass,
-    addUser: userProfile,
-    detailUser: userProfile,
-    updateUser: userProfile
+    userProfile: userLogin,
+    errorPass: truePass,
+    detailUser: userLogin,
+    truePass: truePass,
+    trueMail: truePass
 }
 
 const UserReducer = createSlice({
@@ -127,68 +63,22 @@ const UserReducer = createSlice({
     initialState,
     reducers: {
         getDataUserReducer: (state, action) => {
-            state.subMit = false
             state.arrUser = action.payload
         },
-        textUserReducer: (state, action) => {
-            state.subMit = true
-            let indexTenDangNhap = state.arrUser.findIndex(item => item.tenDangNhap === action.payload.tenDangNhap);
-            if (indexTenDangNhap !== -1) {
-                if (state.arrUser[indexTenDangNhap].matKhau === action.payload.matKhau) {
-                    state.userLogin = state.arrUser[indexTenDangNhap];
-                    let userToken: string = state.userLogin.token as string;
-                    localStorage.setItem(TOKEN, userToken)
-                    localStorage.setItem(USER_LOGIN_ID, state.userLogin.id)
-                    history.push("/profile")
-                    window.location.reload()
-                }
-            }
+        truePasswordInputReducer: (state, action) => {
+            state.truePass = action.payload
         },
-        textEmailUserReducer: (state, action) => {
-            state.subMitMail = true;
-            let indexMail = state.arrUser.findIndex(item => item.email === action.payload.email);
-            if (indexMail !== -1) {
-                state.userEmail = state.arrUser[indexMail]
-                history.push("/changepass")
-                window.location.reload()
-            }
+        trueEmailInputReducer: (state, action) => {
+            state.trueMail = action.payload
         },
-        changePasswordReducer: (state, action) => {
-            state.subMitChangePass = true;
-            if (action.payload.matKhau === action.payload.xacNhanMatKhau) {
-                state.errorPass = false
-                state.userEmail.matKhau = action.payload.matKhau;
-                history.push("/login");
-            } else {
-                state.errorPass = true
-            }
+        passAndEnterPasswordInputReducer: (state, ation) => {
+            state.errorPass = ation.payload
         },
         getUserProfileReducer: (state, action) => {
             state.userProfile = action.payload
         },
-        addUserAccountReducer: (state, action) => {
-            delete action.payload.nhapLaiMatKhau
-            let index = state.arrUser.findIndex(item => item.email === action.payload.email);
-            if (index !== -1) {
-                state.subMit = false;
-            } else {
-                state.addUser = action.payload;
-                state.subMit = true;
-            }
-        },
         getDetailUserAccountReducer: (state, action) => {
             state.detailUser = action.payload
-        },
-        updateUserAccountReducer: (state, action) => {
-            delete action.payload.value.nhapLaiMatKhau;
-            state.arrUserUpdate = state.arrUser.filter(item => item.id !== action.payload.idUser.id);
-            let index = state.arrUserUpdate.findIndex(item => item.email === action.payload.value.email);
-            if (index !== -1) {
-                state.subMit = false;
-            } else {
-                state.updateUser = action.payload.value;
-                state.subMit = true;
-            }
         },
         searchPositionUserAccountReducer: (state, action) => {
             if (action.payload !== "Tất cả") {
@@ -211,13 +101,11 @@ const UserReducer = createSlice({
 
 export const {
     getDataUserReducer,
-    textUserReducer,
-    textEmailUserReducer,
-    changePasswordReducer,
+    truePasswordInputReducer,
+    trueEmailInputReducer,
+    passAndEnterPasswordInputReducer,
     getUserProfileReducer,
-    addUserAccountReducer,
     getDetailUserAccountReducer,
-    updateUserAccountReducer,
     searchPositionUserAccountReducer,
     searchNameUserAccountUserReducer
 } = UserReducer.actions

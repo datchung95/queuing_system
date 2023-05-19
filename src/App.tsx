@@ -10,16 +10,11 @@ import Dashboard from './Page/Dashboard/Dashboard';
 import Profile from './Page/Profile/Profile';
 import Device from './Page/Device/Device';
 import Service from './Page/Service/Service';
-import Number from './Page/Number/Number';
-import Report from './Page/Report/Report';
 import AddDevice from './Page/Device/AddDevice/AddDevice';
 import DetailDevice from './Page/Device/DetailDevice/DetailDevice';
 import UpdateDevice from './Page/Device/UpdateDevice/UpdateDevice';
 import AddService from './Page/Service/AddService/AddService';
-import DetailService from './Page/Service/DetailService/DetailService';
 import UpdateService from './Page/Service/UpdateService/UpdateService';
-import AddNumber from './Page/Number/AddNumber/AddNumber';
-import DetailNumber from './Page/Number/DetailNumber/DetailNumber';
 import PositionManagement from './Page/System/PositionManagement/PositionManagement';
 import AccountManagement from './Page/System/AccountManagement/AccountManagement';
 import AddPosition from './Page/System/PositionManagement/AddPosition/AddPosition';
@@ -45,18 +40,9 @@ function App() {
           </Route>
           <Route path='service' element={<Service />} />
           <Route path='service/addservice' element={<AddService />} />
-          <Route path='service/detailservice' element={<DetailService />} >
-            <Route path=':maDichVu'></Route>
-          </Route>
           <Route path='service/updateservice' element={<UpdateService />} >
             <Route path=':maDichVu'></Route>
           </Route>
-          <Route path='number' element={<Number />} />
-          <Route path='number/addnumber' element={<AddNumber />} />
-          <Route path='number/detailnumber' element={<DetailNumber />} >
-            <Route path=':id'></Route>
-          </Route>
-          <Route path='report' element={<Report />} />
           <Route path='system' element={<PositionManagement />} />
           <Route path='system/positionmanagement' element={<PositionManagement />} />
           <Route path='system/positionmanagement/addposition' element={<AddPosition />} />

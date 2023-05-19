@@ -30,7 +30,7 @@ export default function ForgetPasswordTemplate() {
                     <div className='col-5 d-flex justify-content-center userLogin-template__left'>
                         <div className='userLogin-template__outlet'>
                             <div className='text-center'>
-                                <img className='userLogin-template__Logo' src={require("../../../assets/logo/Logo alta.png")} alt="logoalta" />
+                                <img className='userLogin-template__Logo' src={require("../../../assets/logo/LOgo.png")} alt="logo" />
                             </div>
                             <Outlet />
                         </div>

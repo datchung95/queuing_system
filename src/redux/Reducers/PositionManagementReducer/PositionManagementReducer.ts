@@ -50,18 +50,11 @@ let position: Position = {
     chucNangZC: false
 }
 
-let submit: boolean = false
-
 const initialState = {
     listPosition: listPosition,
     addPosition: position,
-    addSubmit: submit,
     detailPosition: position,
-    updatePosition: position,
-    listSearch: listPosition,
-    upPosition: position,
-    downPosition: position,
-    arrUpDownPosition: listPosition
+    listSearch: listPosition
 }
 
 const PositionManagementReducer = createSlice({
@@ -69,19 +62,13 @@ const PositionManagementReducer = createSlice({
     initialState,
     reducers: {
         getListPositionManagementReducer: (state, action) => {
-            state.addSubmit = false
             state.listPosition = action.payload
         },
         addPositionManagementReducer: (state, action) => {
-            state.addSubmit = true
             state.addPosition = action.payload
         },
         getDetailPositionReducer: (state, action) => {
             state.detailPosition = action.payload
-        },
-        updatePositionManagementReducer: (state, action) => {
-            state.addSubmit = true
-            state.updatePosition = action.payload
         },
         searchNamePositionReducer: (state, action) => {
             if (action.payload.keyWord !== "") {
@@ -100,23 +87,6 @@ const PositionManagementReducer = createSlice({
                 state.listPosition[index].soNguoiDung++;
                 state.detailPosition = state.listPosition[index];
             }
-        },
-        updateUpDownUserPositionReducer: (state, action) => {
-            let indexDetailUp = state.listPosition.findIndex(item => item.tenVaiTro === action.payload.up);
-            let indexDetailDown = state.listPosition.findIndex(item => item.tenVaiTro === action.payload.down);
-            if (indexDetailUp !== -1) {
-                if (action.payload.up !== action.payload.down) {
-                    state.listPosition[indexDetailUp].soNguoiDung++;
-                    state.upPosition = state.listPosition[indexDetailUp];
-                    state.listSearch.push(state.upPosition);
-                }
-            }
-            if (indexDetailDown !== -1) {
-                state.listPosition[indexDetailDown].soNguoiDung--;
-                state.downPosition = state.listPosition[indexDetailDown];
-                state.listSearch.push(state.downPosition);
-            }
-            state.arrUpDownPosition = state.listSearch;
         }
     }
 });
@@ -125,10 +95,8 @@ export const {
     getListPositionManagementReducer,
     addPositionManagementReducer,
     getDetailPositionReducer,
-    updatePositionManagementReducer,
     searchNamePositionReducer,
-    addUpUserPositionReducer,
-    updateUpDownUserPositionReducer
+    addUpUserPositionReducer
 } = PositionManagementReducer.actions
 
 export default PositionManagementReducer.reducer

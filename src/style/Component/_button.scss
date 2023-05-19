@@ -12,12 +12,18 @@
     &:focus {
         outline: none;
     }
+    &:hover {
+        color: #FF7506;
+    }
 }
 
 .button--orange--light {
     @include styleButton(#FF7506, #FFF2E7, 16px, 600, 24px, 12px, 0, 8px, none);
     &:focus {
         outline: none;
+    }
+    &:hover {
+        color: #FF7506;
     }
 }
 
@@ -26,11 +32,13 @@
     &:focus {
         outline: none;
     }
+    &:hover {
+        color: #FF7506;
+    }
 }
 
 .button--blue {
     @include styleButton(#4277FF, transparent, 14px, 400, 21px, 0, 0, 0, none);
-    text-decoration: underline;
     &:focus {
         outline: none;
     }

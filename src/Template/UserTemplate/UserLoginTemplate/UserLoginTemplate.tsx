@@ -30,7 +30,7 @@ export default function UserLoginTemplate() {
                     <div className='col-5 d-flex justify-content-center userLogin-template__left'>
                         <div className='userLogin-template__outlet'>
                             <div className='text-center'>
-                                <img className='userLogin-template__Logo' src={require("../../../assets/logo/Logo alta.png")} alt="logoalta" />
+                                <img className='userLogin-template__Logo' src={require("../../../assets/logo/LOgo.png")} alt="logo" />
                             </div>
                             <Outlet />
                         </div>
@@ -40,7 +40,7 @@ export default function UserLoginTemplate() {
                             <img className='userLogin-template__img' src={require("../../../assets/group/Group 341.png")} alt="group" />
                             <div className='userLogin-template__text'>
                                 <p className='userLogin-template__textlight'>Hệ thống</p>
-                                <h4 className='userLogin-template__textbold'>QUẢN LÝ XẾP HÀNG</h4>
+                                <h4 className='userLogin-template__textbold'>QUẢN LÝ</h4>
                             </div>
                         </div>
                     </div>
