@@ -51,7 +51,8 @@ export default function UpdateAccount() {
             tenDangNhap: detailUser.tenDangNhap,
             matKhau: detailUser.matKhau,
             nhapLaiMatKhau: detailUser.matKhau,
-            trangThaiHoatDong: detailUser.trangThaiHoatDong
+            trangThaiHoatDong: detailUser.trangThaiHoatDong,
+            img: detailUser.img
         },
         validationSchema: Yup.object().shape({
             tenNguoiDung: Yup.string().trim().required("Tên người dùng là trường bắt buộc"),
