@@ -1,5 +1,5 @@
 import { useFormik } from 'formik';
-import React, { useRef, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../../redux/hook';
 import * as Yup from "yup"
@@ -8,27 +8,29 @@ import { RightOutlined } from '@ant-design/icons';
 import { Input, List, Checkbox } from 'antd';
 import "../PositionManagement.scss"
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
-import database from '../../../../configFirebase';
 import VirtualList from 'rc-virtual-list';
-import { getDetailPositionReducer, getListPositionManagementReducer, updatePositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { getDetailPositionReducer, getListPositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { getDetailDataAction } from '../../../../redux/Actions/GetDetailDataAction/GetDetailDataAction';
+import { DIARY, LIST_POSITION } from '../../../../redux/Const/Const';
+import { updateDataAction } from '../../../../redux/Actions/UpdateDataAction/UpdateDataAction';
+import { addHistoryAction } from '../../../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import moment from 'moment';
+import { getAllListDiaryReducer } from '../../../../redux/Reducers/DiaryReducer/DiaryReducer';
 
 export default function UpdatePosition() {
     const dispatch = useAppDispatch();
 
-    const addSubmit = useAppSelector(state => state.PositionManagementReducer.addSubmit);
-
-    const updatePosition = useAppSelector(state => state.PositionManagementReducer.updatePosition);
-
     const detailPosition = useAppSelector(state => state.PositionManagementReducer.detailPosition);
+
+    const userProfile = useAppSelector(state => state.UserReducer.userProfile);
 
     const navigate = useNavigate();
 
     const idPosition = useParams();
 
-    let position: any[] = [];
-
-    let detailPositionRef: any = useRef({})
+    useEffect(() => {
+       dispatch(getDetailDataAction(LIST_POSITION, getDetailPositionReducer, idPosition.id))
+    }, [])
 
     const formik = useFormik({
         enableReinitialize: true,
@@ -49,36 +51,13 @@ export default function UpdatePosition() {
         validationSchema: Yup.object().shape({
             tenVaiTro: Yup.string().trim().required("Tên vai trò là trường bắt buộc")
         }),
-        onSubmit: (value) => {
-            dispatch(updatePositionManagementReducer(value))
+        onSubmit: async (value) => {
+            await dispatch(updateDataAction(LIST_POSITION, detailPosition.id, value, getListPositionManagementReducer))
+            dispatch(addHistoryAction(DIARY, { tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin vai trò ${detailPosition.tenVaiTro}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss") }, getAllListDiaryReducer)).then(() => {
+                navigate("/system/positionmanagement")
+            })
         }
     })
-
-    useEffect(() => {
-        const getDetailPosition = async () => {
-            let id: string = idPosition.id as string
-            const docSnap = await getDoc(doc(database, "ListPosition", id));
-            if (docSnap.exists()) {
-                detailPositionRef.current = { ...docSnap.data(), id: docSnap.id }
-                dispatch(getDetailPositionReducer(detailPositionRef.current))
-            }
-        }
-        getDetailPosition();
-    }, [])
-
-    const addPositionManagementFirestore = async () => {
-        if (addSubmit) {
-            let id: string = idPosition.id as string
-            await setDoc(doc(database, "ListPosition", id), updatePosition);
-            const getPosition = await getDocs(collection(database, "ListPosition"));
-            getPosition.forEach((doc) => {
-                position.push({ ...doc.data(), id: doc.id })
-            });
-            dispatch(getListPositionManagementReducer(position))
-            navigate("/system/positionmanagement")
-        }
-    }
-    addPositionManagementFirestore()
 
     const onChangeCheckbox = (name: string, e: CheckboxChangeEvent) => {
         formik.setFieldValue(name, e.target.checked)
@@ -205,7 +184,7 @@ export default function UpdatePosition() {
                     </div>
                     <div className='text-center formInput__bottomButton'>
                         <NavLink className="button--orange--light--border" to="/system/positionmanagement" style={{ paddingLeft: "35px", paddingRight: "35px" }}>Hủy bỏ</NavLink>
-                        <button className='button--orange formInput__bottomSubmit' type='submit'>Thêm</button>
+                        <button className='button--orange formInput__bottomSubmit' type='submit'>Cập nhật</button>
                     </div>
                 </form>
             </div>

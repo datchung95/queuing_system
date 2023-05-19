@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import User from '../../../component/User/User'
 import { RightOutlined } from '@ant-design/icons';
 import { Input, Select } from 'antd';
@@ -9,58 +9,49 @@ import { useFormik } from 'formik';
 import * as Yup from "yup"
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
 import { addDeviceReducer, getAllDevices } from '../../../redux/Reducers/DeviceReducer/DeviceReducer';
-import { addDoc, collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import database from '../../../configFirebase';
 import moment from 'moment';
-import { USER_LOGIN_ID } from '../../../util/Const/Const';
-import { getUserProfileReducer } from '../../../redux/Reducers/UserReducer/UserReducer';
+import { DEVICES, DIARY, SERVICES } from '../../../redux/Const/Const';
+import { addDataAction } from '../../../redux/Actions/AddDataAction/AddDataAction';
+import { getAllListDiaryReducer } from '../../../redux/Reducers/DiaryReducer/DiaryReducer';
+import { addHistoryAction } from '../../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import { getAllDataAction } from '../../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import { getAllServiceReducer } from '../../../redux/Reducers/ServiceReducer/ServiceReducer';
+import openNotificationWithIcon from '../../../Notification/Notification';
 
 export default function AddDevice() {
 
     const dispatch = useAppDispatch();
 
-    const newDevice = useAppSelector(state => state.DeviceReducer.newDevice);
-
-    const subMitAdd = useAppSelector(state => state.DeviceReducer.subMitAdd);
-
     const userProfile = useAppSelector(state => state.UserReducer.userProfile);
 
     const arrService = useAppSelector(state => state.ServiceReducer.arrService);
 
+    const arrDevice = useAppSelector(state => state.DeviceReducer.arrDevice);
+
+    const arrServiceAction = arrService.filter(item => item.trangThaiHoatDong === "Hoạt động")
+
     const navigate = useNavigate();
 
-    let userLogin: any = useRef({})
-
-    let device: any[] = [];
-
     useEffect(() => {
-        const getDataUserLogin = async () => {
-            let userLoginID: string = localStorage.getItem(USER_LOGIN_ID) as string
-            const docSnap = await getDoc(doc(database, "User", userLoginID));
-            if (docSnap.exists()) {
-                userLogin.current = {...docSnap.data(), id: docSnap.id, token: docSnap.id}
-                dispatch(getUserProfileReducer(userLogin.current))
-            }
-        }
-        getDataUserLogin();
+        dispatch(getAllDataAction(DEVICES, getAllDevices))
+        dispatch(getAllDataAction(SERVICES, getAllServiceReducer))
     }, [])
 
     const formik = useFormik({
         initialValues: {
             maThietBi: "",
             tenThietBi: "",
-            diaChiIP: "",
             loaiThietBi: "",
             hoatDong: "",
             ketNoi: "",
             dichVuSuDung: "",
             tenDangNhap: "",
-            matKhau: ""
+            matKhau: "",
+            email: ""
         },
         validationSchema: Yup.object().shape({
             maThietBi: Yup.string().trim().required("Mã thiết bị là trường bắt buộc"),
             tenThietBi: Yup.string().trim().required("Tên thiết bị là trường bắt buộc"),
-            diaChiIP: Yup.string().trim().required("Địa chỉ IP là trường bắt buộc"),
             loaiThietBi: Yup.string().trim().required("Loại thiết bị là trường bắt buộc"),
             dichVuSuDung: Yup.array().required("Dịch vụ sử dụng là trường bắt buộc"),
             tenDangNhap: Yup.string().trim().required("Tên đăng nhập là trường bắt buộc"),
@@ -68,34 +59,28 @@ export default function AddDevice() {
             hoatDong: Yup.string().trim().required("Trạng thái hoạt động là trường bắt buộc"),
             ketNoi: Yup.string().trim().required("Trạng thái kết nối là trường bắt buộc")
         }),
-        onSubmit: (value) => {
-            dispatch(addDeviceReducer(value));
+        onSubmit: async (value) => {
+            let indexDeviceCode = arrDevice.findIndex(item => item.maThietBi === value.maThietBi)
+            if (indexDeviceCode !== -1) {
+                openNotificationWithIcon("error", "Mã thiết bị đã tồn tại")
+            } else {
+                value.email = userProfile.email
+                await dispatch(addDataAction(DEVICES, value, addDeviceReducer));
+                dispatch(addHistoryAction(DIARY, { tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm thiết bị ${value.maThietBi}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss") }, getAllListDiaryReducer)).then(() => {
+                    navigate("/device")
+                })
+            }
         }
     })
 
     const renderSelectSevice = () => {
-        return arrService.map((item, index) => {
+        return arrServiceAction.map((item, index) => {
             return {
                 value: item.tenDichVu,
                 label: item.tenDichVu
             }
         })
     }
-
-    const addDeviceFirestore = async () => {
-        if (subMitAdd) {
-            await addDoc(collection(database, "Devices"), newDevice);
-            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm thiết bị ${newDevice.maThietBi}`, IPThucHien: newDevice.diaChiIP, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
-            const getDevice = await getDocs(collection(database, "Devices"));
-            getDevice.forEach((doc) => {
-                device.push({ ...doc.data(), id: doc.id })
-            });
-            await dispatch(getAllDevices(device))
-            await navigate("/device")
-            window.location.reload()
-        }
-    }
-    addDeviceFirestore()
 
     const handleChangeLoaiThietBi = (value: string) => {
         formik.setFieldValue("loaiThietBi", value)
@@ -140,21 +125,23 @@ export default function AddDevice() {
                         <h4 className='text--title--small'>Thông tin thiết bị</h4>
                         <div className='container-fluid'>
                             <div className='row'>
-                                <div className='col-6'>
+                                <div className='col-12'>
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Mã thiết bị: <span style={{ color: "#FF4747" }}>*</span></p>
                                         <Input name="maThietBi" value={formik.values.maThietBi} onChange={formik.handleChange} placeholder='Nhập mã thiết bị' type="text" />
                                         {formik.touched.maThietBi && <p className='text-danger'>{formik.errors.maThietBi}</p>}
                                     </div>
+                                </div>
+                                <div className='col-6'>
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Tên thiết bị: <span style={{ color: "#FF4747" }}>*</span></p>
                                         <Input name="tenThietBi" value={formik.values.tenThietBi} onChange={formik.handleChange} placeholder='Nhập tên thiết bị' type="text" />
                                         {formik.touched.tenThietBi && <p className='text-danger'>{formik.errors.tenThietBi}</p>}
                                     </div>
                                     <div className='formInput__bottomGroupInput'>
-                                        <p className='label-input m-0'>Địa chỉ IP: <span style={{ color: "#FF4747" }}>*</span></p>
-                                        <Input name="diaChiIP" value={formik.values.diaChiIP} onChange={formik.handleChange} placeholder='Nhập địa chỉ IP' type="text" />
-                                        {formik.touched.diaChiIP && <p className='text-danger'>{formik.errors.diaChiIP}</p>}
+                                        <p className='label-input m-0'>Tên đăng nhập: <span style={{ color: "#FF4747" }}>*</span></p>
+                                        <Input name="tenDangNhap" value={formik.values.tenDangNhap} onChange={formik.handleChange} placeholder='Nhập tài khoản' type="text" />
+                                        {formik.touched.tenDangNhap && <p className='text-danger'>{formik.errors.tenDangNhap}</p>}
                                     </div>
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Trạng thái hoạt động: <span style={{ color: "#FF4747" }}>*</span></p>
@@ -197,11 +184,6 @@ export default function AddDevice() {
                                             ]}
                                         />
                                         {formik.touched.loaiThietBi && <p className='text-danger'>{formik.errors.loaiThietBi}</p>}
-                                    </div>
-                                    <div className='formInput__bottomGroupInput'>
-                                        <p className='label-input m-0'>Tên đăng nhập: <span style={{ color: "#FF4747" }}>*</span></p>
-                                        <Input name="tenDangNhap" value={formik.values.tenDangNhap} onChange={formik.handleChange} placeholder='Nhập tài khoản' type="text" />
-                                        {formik.touched.tenDangNhap && <p className='text-danger'>{formik.errors.tenDangNhap}</p>}
                                     </div>
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Mật khẩu: <span style={{ color: "#FF4747" }}>*</span></p>

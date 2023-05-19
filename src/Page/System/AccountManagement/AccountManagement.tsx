@@ -1,22 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import User from '../../../component/User/User'
 import { RightOutlined } from '@ant-design/icons';
 import { CaretLeftOutlined, CaretRightOutlined, SearchOutlined, CaretDownOutlined } from '@ant-design/icons';
 import "./AccountManagement.scss";
 import { Table, Input, Select } from 'antd';
-import { NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
 import { ColumnsType } from 'antd/lib/table';
 import { useFormik } from 'formik';
-import { collection, getDocs } from 'firebase/firestore';
-import database from '../../../configFirebase';
 import { getDataUserReducer, searchNameUserAccountUserReducer, searchPositionUserAccountReducer } from '../../../redux/Reducers/UserReducer/UserReducer';
+import { getAllDataAction } from '../../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import { USER } from '../../../redux/Const/Const';
+import openNotificationWithIcon from '../../../Notification/Notification';
+import { ID_DETAIL_USER } from '../../../util/Const/Const';
 
 interface DataType {
     tenDangNhap: string;
     tenNguoiDung: string;
     soDienThoai: string;
-    email: string;
     vaiTro: string;
     trangThaiHoatDong: string;
 }
@@ -29,56 +30,13 @@ export default function AccountManagement() {
 
     const arrUser = useAppSelector(state => state.UserReducer.arrUser);
 
-    let user: any[] = [];
+    const userProfile = useAppSelector(state => state.UserReducer.userProfile);
 
-    const getAllUser = async () => {
-        const querySnapshot = await getDocs(collection(database, "User"));
-            querySnapshot.forEach((doc) => {
-                user.push({ ...doc.data(), id: doc.id, token: doc.id })
-            });
-            dispatch(getDataUserReducer(user));
-    }
+    const navigate = useNavigate()
 
-    const columns: ColumnsType<DataType> = [
-        {
-            title: 'Tên đăng nhập',
-            dataIndex: 'tenDangNhap',
-        },
-        {
-            title: 'Họ tên',
-            dataIndex: 'tenNguoiDung',
-        },
-        {
-            title: 'Số điện thoại',
-            dataIndex: 'soDienThoai',
-        },
-        {
-            title: 'Email',
-            dataIndex: 'email',
-        },
-        {
-            title: 'Vai trò',
-            dataIndex: 'vaiTro',
-        },
-        {
-            title: 'Trạng thái hoạt động',
-            dataIndex: 'trangThaiHoatDong',
-            render: (text) => {
-                if (text === "Hoạt động") {
-                    return <div><img style={{ marginRight: "4px" }} src={require("../../../assets/dashboard/dotgreen.png")} alt="dot" />Hoạt động</div>
-                } else {
-                    return <div><img style={{ marginRight: "4px", width: "4px" }} src={require("../../../assets/dashboard/dotred.png")} alt="dot" />Ngưng hoạt động</div>
-                }
-            }
-        },
-        {
-            title: '',
-            dataIndex: '',
-            render: (text) => {
-                return <NavLink to={`/system/accountmanagement/updateaccount/${text.id}`} className='button--blue'>Cập nhật</NavLink>
-            }
-        }
-    ];
+    useEffect(() => {
+        dispatch(getAllDataAction(USER, getDataUserReducer))
+    }, [])
 
     const renderSelectPosition = () => {
         return listPosition.map((item, index) => {
@@ -100,15 +58,67 @@ export default function AccountManagement() {
             keyWord: ""
         },
         onSubmit: async (value) => {
-            await getAllUser();
+            await dispatch(getAllDataAction(USER, getDataUserReducer))
             dispatch(searchNameUserAccountUserReducer(value))
         }
     })
 
     const handleChangePosition = async (value: string) => {
-        await getAllUser();
+        await dispatch(getAllDataAction(USER, getDataUserReducer))
         dispatch(searchPositionUserAccountReducer(value))
     }
+
+    const columns: ColumnsType<DataType> = [
+        {
+            title: 'Tên đăng nhập',
+            dataIndex: 'tenDangNhap',
+        },
+        {
+            title: 'Họ tên',
+            dataIndex: 'tenNguoiDung',
+        },
+        {
+            title: 'Số điện thoại',
+            dataIndex: 'soDienThoai',
+        },
+        {
+            title: 'Vai trò',
+            dataIndex: 'vaiTro',
+        },
+        {
+            title: 'Trạng thái hoạt động',
+            dataIndex: 'trangThaiHoatDong',
+            render: (text) => {
+                if (text === "Hoạt động") {
+                    return <div><img style={{ marginRight: "4px" }} src={require("../../../assets/dashboard/dotgreen.png")} alt="dot" />Hoạt động</div>
+                } else {
+                    return <div><img style={{ marginRight: "4px", width: "4px" }} src={require("../../../assets/dashboard/dotred.png")} alt="dot" />Ngưng hoạt động</div>
+                }
+            }
+        },
+        {
+            title: '',
+            dataIndex: '',
+            render: (text) => {
+                return <button className='button--blue' onClick={() => {
+                    if (text.vaiTro === "Admin") {
+                        if (text.email === userProfile.email) {
+                            navigate(`/system/accountmanagement/updateaccount/${text.id}`)
+                        } else {
+                            openNotificationWithIcon("error", "Bạn không có quyền chỉnh sửa user này")
+                        }
+                    } else {
+                        if (userProfile.email === text.email || userProfile.vaiTro === "Admin") {
+                            navigate(`/system/accountmanagement/updateaccount/${text.id}`)
+                            localStorage.setItem(ID_DETAIL_USER, text.id)
+                        } else {
+                            openNotificationWithIcon("error", "Bạn không có quyền chỉnh sửa")
+                        }
+                    }
+                }}>Cập nhật</button>
+            }
+        }
+    ];
 
     const itemRender = (_: any, type: any, originalElement: any) => {
         if (type === "prev") {
@@ -157,7 +167,7 @@ export default function AccountManagement() {
                                     />
                                 </div>
                                 <form style={{ position: "relative" }} onSubmit={formik.handleSubmit}>
-                                    <p className='label-input m-0'>Từ khóa</p>
+                                    <p className='label-input m-0'>Tìm tên người dùng</p>
                                     <Input
                                         className='accountManagement__input'
                                         style={{ width: 300 }}
@@ -180,14 +190,20 @@ export default function AccountManagement() {
                             </div>
                         </div>
                         <div className='col-1 button--addUpdate p-0'>
-                            <NavLink to="/system/accountmanagement/addaccount" className='d-flex justify-content-center align-items-center h-100'>
+                            <button className='d-flex justify-content-center align-items-center h-100 accoutManagement__buttonAdd' onClick={() => {
+                                if (userProfile.vaiTro === "Admin") {
+                                    navigate("/system/accountmanagement/addaccount")
+                                } else {
+                                    openNotificationWithIcon("error", "Bạn không có quyền thêm tài khoản")
+                                }
+                            }}>
                                 <div className='button--addUpdateContent'>
                                     <div className='d-flex justify-content-center'>
                                         <img src={require("../../../assets/icon/add-square.png")} alt="add" />
                                     </div>
                                     <p className='text-center button--addUpdateText'>Thêm tài khoản</p>
                                 </div>
-                            </NavLink>
+                            </button>
                         </div>
                     </div>
                 </div>

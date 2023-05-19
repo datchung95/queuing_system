@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import User from '../../../../component/User/User'
 import { RightOutlined } from '@ant-design/icons';
 import { Input, Select } from 'antd';
@@ -8,11 +8,16 @@ import "../AccountManagement.scss"
 import { useFormik } from 'formik';
 import * as Yup from "yup"
 import { useAppDispatch, useAppSelector } from '../../../../redux/hook';
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
-import database from '../../../../configFirebase';
-import { getDataUserReducer, getDetailUserAccountReducer, updateUserAccountReducer } from '../../../../redux/Reducers/UserReducer/UserReducer';
+import { getDataUserReducer, getDetailUserAccountReducer } from '../../../../redux/Reducers/UserReducer/UserReducer';
 import openNotificationWithIcon from '../../../../Notification/Notification';
-import { updateUpDownUserPositionReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { getListPositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { getDetailDataAction } from '../../../../redux/Actions/GetDetailDataAction/GetDetailDataAction';
+import { DIARY, LIST_POSITION, USER } from '../../../../redux/Const/Const';
+import { getAllDataAction } from '../../../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import { updateDataAction, updatePositionQuantityUserAction } from '../../../../redux/Actions/UpdateDataAction/UpdateDataAction';
+import { addHistoryAction } from '../../../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import moment from 'moment';
+import { getAllListDiaryReducer } from '../../../../redux/Reducers/DiaryReducer/DiaryReducer';
 
 export default function UpdateAccount() {
 
@@ -20,46 +25,17 @@ export default function UpdateAccount() {
 
     const listPosition = useAppSelector(state => state.PositionManagementReducer.listPosition);
 
-    const arrUpDownPosition = useAppSelector(state => state.PositionManagementReducer.arrUpDownPosition);
-
-    const subMit = useAppSelector(state => state.UserReducer.subMit);
-
-    const updateUser = useAppSelector(state => state.UserReducer.updateUser);
-
     const detailUser = useAppSelector(state => state.UserReducer.detailUser);
+
+    const userProfile = useAppSelector(state => state.UserReducer.userProfile);
 
     const navigate = useNavigate();
 
     const idUser = useParams();
 
-    let userRef = useRef({})
-
-    let user: any[] = [];
-
     useEffect(() => {
-        const getData = async () => {
-            const querySnapshot = await getDocs(collection(database, "User"));
-            querySnapshot.forEach((doc) => {
-                user.push({ ...doc.data(), id: doc.id, token: doc.id })
-            });
-            dispatch(getDataUserReducer(user));
-        }
-        getData();
-    }, [])
-
-    
-
-    const getDetailUserAccount = async () => {
-        let id: string = idUser.id as string
-        const docSnap = await getDoc(doc(database, "User", id));
-        if (docSnap.exists()) {
-            userRef.current = { ...docSnap.data(), id: docSnap.id, token: docSnap.id }
-            dispatch(getDetailUserAccountReducer(userRef.current))
-        }
-    }
-
-    useEffect(() => {
-        getDetailUserAccount()
+        dispatch(getDetailDataAction(USER, getDetailUserAccountReducer, idUser.id))
+        dispatch(getAllDataAction(LIST_POSITION, getListPositionManagementReducer))
     }, [])
 
     let truePass: boolean = true;
@@ -67,6 +43,7 @@ export default function UpdateAccount() {
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
+            id: detailUser.id,
             tenNguoiDung: detailUser.tenNguoiDung,
             soDienThoai: detailUser.soDienThoai,
             email: detailUser.email,
@@ -86,12 +63,22 @@ export default function UpdateAccount() {
             nhapLaiMatKhau: Yup.string().trim().required("Nhập lại mật khẩu là trường bắt buộc"),
             trangThaiHoatDong: Yup.string().trim().required("Trạng thái hoạt động là trường bắt buộc")
         }),
-        onSubmit: (value) => {
+        onSubmit: async (value) => {
             if (value.matKhau === value.nhapLaiMatKhau) {
                 if (detailUser.vaiTro !== value.vaiTro) {
-                    dispatch(updateUpDownUserPositionReducer({up: value.vaiTro, down: detailUser.vaiTro}))
+                    let indexUp = listPosition.findIndex(item => item.tenVaiTro === value.vaiTro)
+                    let indexDown = listPosition.findIndex(item => item.tenVaiTro === detailUser.vaiTro)
+                    if (indexUp !== -1) {
+                        await dispatch(updatePositionQuantityUserAction(LIST_POSITION, listPosition[indexUp].id, listPosition[indexUp].soNguoiDung + 1, getListPositionManagementReducer))
+                    }
+                    if (indexDown !== -1) {
+                        await dispatch(updatePositionQuantityUserAction(LIST_POSITION, listPosition[indexDown].id, listPosition[indexDown].soNguoiDung - 1, getListPositionManagementReducer))
+                    }
                 }
-                dispatch(updateUserAccountReducer({value, idUser}))
+                await dispatch(updateDataAction(USER, detailUser.id, value, getDataUserReducer))
+                dispatch(addHistoryAction(DIARY, { tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin người dùng ${detailUser.tenDangNhap}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss") }, getAllListDiaryReducer)).then(() => {
+                    navigate("/system/accountmanagement")
+                })
             } else {
                 openNotificationWithIcon("error", "Mật khẩu và nhập lại mật khẩu phải giống nhau");
             }
@@ -106,19 +93,6 @@ export default function UpdateAccount() {
             }
         })
     }
-
-    const addUserAccountFirestore = async () => {
-        if (subMit) {
-            let id: string = idUser.id as string
-            await setDoc(doc(database, "ListPosition", arrUpDownPosition[1].id), arrUpDownPosition[1]);
-            await setDoc(doc(database, "ListPosition", arrUpDownPosition[2].id), arrUpDownPosition[2]);
-            await setDoc(doc(database, "User", id), updateUser);
-            await getDetailUserAccount();
-            await navigate("/system/accountmanagement")
-            window.location.reload()
-        }
-    }
-    addUserAccountFirestore()
 
     const handleChangeVaiTro = (value: string) => {
         formik.setFieldValue("vaiTro", value)
@@ -174,6 +148,7 @@ export default function UpdateAccount() {
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Vai trò: <span style={{ color: "#FF4747" }}>*</span></p>
                                         <Select
+                                            disabled={userProfile.vaiTro === "Admin" ? false : true}
                                             value={formik.values.vaiTro}
                                             placeholder="Chọn vai trò"
                                             style={{ width: "100%" }}
@@ -203,6 +178,7 @@ export default function UpdateAccount() {
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Tình trạng: <span style={{ color: "#FF4747" }}>*</span></p>
                                         <Select
+                                            disabled={userProfile.vaiTro === "Admin" ? false : true}
                                             value={formik.values.trangThaiHoatDong}
                                             placeholder="Chọn trạng thái kết nối"
                                             style={{ width: "100%" }}

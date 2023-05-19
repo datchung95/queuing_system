@@ -1,16 +1,18 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import User from '../../../component/User/User'
 import { RightOutlined } from '@ant-design/icons';
 import { CaretLeftOutlined, CaretRightOutlined, SearchOutlined } from '@ant-design/icons';
 import "./PositionManagement.scss"
 import { Table, Input } from 'antd';
-import { NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
 import { ColumnsType } from 'antd/lib/table';
 import { useFormik } from 'formik';
 import { getListPositionManagementReducer, searchNamePositionReducer } from '../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
-import { collection, getDocs } from 'firebase/firestore';
-import database from '../../../configFirebase';
+import { getAllDataAction } from '../../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import { LIST_POSITION } from '../../../redux/Const/Const';
+import openNotificationWithIcon from '../../../Notification/Notification';
+import { ID_LIST_POSITION } from '../../../util/Const/Const';
 
 interface DataType {
     tenVaiTro: string;
@@ -24,7 +26,23 @@ export default function PositionManagement() {
 
     const listPosition = useAppSelector(state => state.PositionManagementReducer.listPosition);
 
-    let listPositiom: any[] = [];
+    const userProfile = useAppSelector(state => state.UserReducer.userProfile);
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        dispatch(getAllDataAction(LIST_POSITION, getListPositionManagementReducer))
+    }, [])
+
+    const formik = useFormik({
+        initialValues: {
+            keyWord: ""
+        },
+        onSubmit: async (value) => {
+            await dispatch(getAllDataAction(LIST_POSITION, getListPositionManagementReducer))
+            dispatch(searchNamePositionReducer(value))
+        }
+    })
 
     const columns: ColumnsType<DataType> = [
         {
@@ -43,28 +61,17 @@ export default function PositionManagement() {
             title: '',
             dataIndex: '',
             render: (text) => {
-                return <NavLink to={`/system/positionmanagement/updateposition/${text.id}`} className='button--blue'>Cập nhật</NavLink>
+                return <button className='button--blue' onClick={() => {
+                    if (userProfile.vaiTro === "Admin") {
+                        navigate(`/system/positionmanagement/updateposition/${text.id}`)
+                        localStorage.setItem(ID_LIST_POSITION, text.id)
+                    } else {
+                        openNotificationWithIcon("error", "Bạn không có quyền chỉnh sửa")
+                    }
+                }}>Cập nhật</button>
             }
         }
     ];
-
-    const getAllListPosition = async () => {
-        const getListPosition = await getDocs(collection(database, "ListPosition"));
-        getListPosition.forEach((doc) => {
-            listPositiom.push({ ...doc.data(), id: doc.id })
-        });
-        dispatch(getListPositionManagementReducer(listPositiom))
-    }
-
-    const formik = useFormik({
-        initialValues: {
-            keyWord: ""
-        },
-        onSubmit: async (value) => {
-            await getAllListPosition();
-            dispatch(searchNamePositionReducer(value))
-        }
-    })
 
     const itemRender = (_: any, type: any, originalElement: any) => {
         if (type === "prev") {
@@ -102,7 +109,7 @@ export default function PositionManagement() {
                         <div className='col-11'>
                             <div className='d-flex justify-content-end align-items-center'>
                                 <form style={{ position: "relative" }} onSubmit={formik.handleSubmit}>
-                                    <p className='label-input m-0'>Từ khóa</p>
+                                    <p className='label-input m-0'>Tìm tên vai trò</p>
                                     <Input
                                         className='positionManagement__input'
                                         style={{ width: 240 }}
@@ -125,14 +132,20 @@ export default function PositionManagement() {
                             </div>
                         </div>
                         <div className='col-1 button--addUpdate p-0'>
-                            <NavLink to="/system/positionmanagement/addposition" className='d-flex justify-content-center align-items-center h-100'>
+                            <button className='d-flex justify-content-center align-items-center h-100 positionManagement__buttonAdd' onClick={() => {
+                                if (userProfile.vaiTro === "Admin") {
+                                    navigate("/system/positionmanagement/addposition")
+                                } else {
+                                    openNotificationWithIcon("error", "Bạn không có quyền thêm vai trò")
+                                }
+                            }}>
                                 <div className='button--addUpdateContent'>
                                     <div className='d-flex justify-content-center'>
                                         <img src={require("../../../assets/icon/add-square.png")} alt="add" />
                                     </div>
                                     <p className='text-center button--addUpdateText'>Thêm vai trò</p>
                                 </div>
-                            </NavLink>
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import User from '../../../component/User/User'
 import { RightOutlined } from '@ant-design/icons';
-import { CaretLeftOutlined, CaretRightOutlined, SearchOutlined, CaretDownOutlined } from '@ant-design/icons';
+import { CaretLeftOutlined, CaretRightOutlined, SearchOutlined } from '@ant-design/icons';
 import "./ActiveDiary.scss";
 import { Table, Input, DatePicker } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
@@ -9,13 +9,13 @@ import { ColumnsType } from 'antd/lib/table';
 import { useFormik } from 'formik';
 import type { DatePickerProps, RangePickerProps } from 'antd/es/date-picker';
 import { getAllListDiaryReducer, searchNameUserDiaryReducer, searchTimeDiaryReducer } from '../../../redux/Reducers/DiaryReducer/DiaryReducer';
-import { collection, getDocs } from 'firebase/firestore';
-import database from '../../../configFirebase';
+import { getAllDataAction } from '../../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import { DIARY } from '../../../redux/Const/Const';
+import moment from 'moment';
 
 interface DataType {
     tenDangNhap: string;
     thoiGianTacDong: string;
-    IPThucHien: string;
     thaoTacThucHien: string;
 }
 
@@ -25,15 +25,34 @@ export default function ActiveDiary() {
 
     const arrDiary = useAppSelector(state => state.DiaryReducer.arrDiary);
 
-    let diary: any[] = [];
+    const arrDiarySort = [...arrDiary].sort((a, b) => moment(b.thoiGianTacDong, "DD/MM/YYYY hh:mm:ss").diff(moment(a.thoiGianTacDong, "DD/MM/YYYY hh:mm:ss")))
 
-    const getListDiary = async () => {
-        const querySnapshot = await getDocs(collection(database, "ArrDiary"));
-            querySnapshot.forEach((doc) => {
-                diary.push({ ...doc.data(), id: doc.id, token: doc.id })
-            });
-            dispatch(getAllListDiaryReducer(diary));
-    }
+    useEffect(() => {
+        dispatch(getAllDataAction(DIARY, getAllListDiaryReducer))
+    }, [])
+
+    const formik = useFormik({
+        initialValues: {
+            keyWord: ""
+        },
+        onSubmit: async (value) => {
+            await dispatch(getAllDataAction(DIARY, getAllListDiaryReducer))
+            dispatch(searchNameUserDiaryReducer(value))
+        }
+    })
+
+    const onChange = async (
+        value: DatePickerProps['value'] | RangePickerProps['value'],
+        dateString: [string, string] | string,
+    ) => {
+        if (dateString[0] !== "" && dateString[1] !== "") {
+            await dispatch(getAllDataAction(DIARY, getAllListDiaryReducer))
+            dispatch(searchTimeDiaryReducer(dateString));
+        } else {
+            console.log("d")
+            dispatch(getAllDataAction(DIARY, getAllListDiaryReducer))
+        }
+    };
 
     const columns: ColumnsType<DataType> = [
         {
@@ -45,32 +64,10 @@ export default function ActiveDiary() {
             dataIndex: 'thoiGianTacDong',
         },
         {
-            title: 'IP thực hiện',
-            dataIndex: 'IPThucHien',
-        },
-        {
             title: 'Thao tác thực hiện',
             dataIndex: 'thaoTacThucHien',
         }
     ];
-
-    const formik = useFormik({
-        initialValues: {
-            keyWord: ""
-        },
-        onSubmit: async (value) => {
-            await getListDiary();
-            dispatch(searchNameUserDiaryReducer(value))
-        }
-    })
-
-    const onChange = async (
-        value: DatePickerProps['value'] | RangePickerProps['value'],
-        dateString: [string, string] | string,
-    ) => {
-        await getListDiary()
-        dispatch(searchTimeDiaryReducer(dateString));
-    };
 
     const itemRender = (_: any, type: any, originalElement: any) => {
         if (type === "prev") {
@@ -129,7 +126,7 @@ export default function ActiveDiary() {
                                 <Table
                                     className='diary__tableLayout'
                                     rowClassName={(record, index) => index % 2 === 0 ? 'table-row-light' : 'table-row-orange'} columns={columns}
-                                    dataSource={arrDiary}
+                                    dataSource={arrDiarySort}
                                     rowKey="id"
                                     pagination={{
                                         itemRender: itemRender

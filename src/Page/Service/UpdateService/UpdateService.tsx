@@ -1,46 +1,34 @@
 import { useFormik } from 'formik';
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
 import * as Yup from "yup"
 import User from '../../../component/User/User';
-import { RightOutlined } from '@ant-design/icons';
-import { Input, Checkbox } from 'antd';
+import { RightOutlined, CaretDownOutlined } from '@ant-design/icons';
+import { Input, Select } from 'antd';
 import "../Service.scss";
-import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import { getAllServiceReducer, getServiceDetailReducer, updateServiceReducer } from '../../../redux/Reducers/ServiceReducer/ServiceReducer';
-import { addDoc, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
-import database from '../../../configFirebase';
+import { getAllServiceReducer, getServiceDetailReducer } from '../../../redux/Reducers/ServiceReducer/ServiceReducer';
 import moment from 'moment';
+import { updateDataAction } from '../../../redux/Actions/UpdateDataAction/UpdateDataAction';
+import { DIARY, SERVICES } from '../../../redux/Const/Const';
+import { addHistoryAction } from '../../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import { getAllListDiaryReducer } from '../../../redux/Reducers/DiaryReducer/DiaryReducer';
+import { getDetailDataAction } from '../../../redux/Actions/GetDetailDataAction/GetDetailDataAction';
 
 export default function UpdateService() {
 
-    const maDichVuParam = useParams();
-
     const dispatch = useAppDispatch();
 
-    const serviceDetail = useAppSelector(state => state.ServiceReducer.serviceDetail);
+    const maDichVuDetail = useParams();
 
-    const updateSubmit = useAppSelector(state => state.ServiceReducer.updateSubmit);
+    const serviceDetail = useAppSelector(state => state.ServiceReducer.serviceDetail);
 
     const userProfile = useAppSelector(state => state.UserReducer.userProfile);
 
     const navigate = useNavigate();
 
-    let serviceDetailRef = useRef({})
-
-    let service: any[] = [];
-
     useEffect(() => {
-        const getDataDetailDevice = async () => {
-            let maDichVu: string = maDichVuParam.maDichVu as string
-            const docSnap = await getDoc(doc(database, "Services", maDichVu));
-            if (docSnap.exists()) {
-                serviceDetailRef.current = { ...docSnap.data(), id: docSnap.id }
-                dispatch(getServiceDetailReducer(serviceDetailRef.current))
-            }
-        }
-        getDataDetailDevice();
+        dispatch(getDetailDataAction(SERVICES, getServiceDetailReducer, maDichVuDetail.maDichVu))
     }, [])
 
     const formik = useFormik({
@@ -49,47 +37,22 @@ export default function UpdateService() {
             maDichVu: serviceDetail.maDichVu,
             moTa: serviceDetail.moTa,
             tenDichVu: serviceDetail.tenDichVu,
-            trangThaiHoatDong: serviceDetail.trangThaiHoatDong,
-            soTang: serviceDetail.soTang,
-            quyTacCapSo: {
-                prefix: serviceDetail.quyTacCapSo.prefix,
-                surfix: serviceDetail.quyTacCapSo.surfix,
-                tangTuDong: serviceDetail.quyTacCapSo.tangTuDong,
-                reset: serviceDetail.quyTacCapSo.reset
-            }
+            trangThaiHoatDong: serviceDetail.trangThaiHoatDong
         },
         validationSchema: Yup.object().shape({
             maDichVu: Yup.string().trim().required("Mã dịch vụ là trường bắt buộc"),
             tenDichVu: Yup.string().trim().required("Tên dịch vụ là trường bắt buộc")
         }),
-        onSubmit: (value) => {
-            dispatch(updateServiceReducer(value))
+        onSubmit: async (value) => {
+            await dispatch(updateDataAction(SERVICES, serviceDetail.id, value, getAllServiceReducer))
+            dispatch(addHistoryAction(DIARY, { tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin dịch vụ ${serviceDetail.tenDichVu}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss") }, getAllListDiaryReducer)).then(() => {
+                navigate("/service")
+            })
         }
     })
 
-    const updateServiceFireStore = async () => {
-        if (updateSubmit) {
-            let maDichVu: string = maDichVuParam.maDichVu as string
-            await setDoc(doc(database, "Services", maDichVu), serviceDetail);
-            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin dịch vụ ${serviceDetail.tenDichVu}`, IPThucHien: "192.168.1.1", thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
-            const docSnap = await getDoc(doc(database, "Services", maDichVu));
-            if (docSnap.exists()) {
-                serviceDetailRef.current = { ...docSnap.data(), id: docSnap.id }
-                dispatch(getServiceDetailReducer(serviceDetailRef.current))
-            }
-            const getService = await getDocs(collection(database, "Services"));
-            getService.forEach((doc) => {
-                service.push(doc.data())
-            });
-            await dispatch(getAllServiceReducer(service))
-            await navigate("/service")
-            window.location.reload()
-        }
-    }
-    updateServiceFireStore()
-
-    const onChangeCheckbox = (name: string, e: CheckboxChangeEvent) => {
-        formik.setFieldValue(name, e.target.checked)
+    const handleChangeHoatDong = (value: string) => {
+        formik.setFieldValue("trangThaiHoatDong", value)
     };
 
     return (
@@ -138,36 +101,25 @@ export default function UpdateService() {
                                         <Input.TextArea maxLength={1000} className='addService__inputDes' value={formik.values.moTa} name="moTa" onChange={formik.handleChange} placeholder='Mô tả dịch vụ' />
                                     </div>
                                 </div>
-                                <div className='col-6 formService__number'>
-                                    <h4 className='text--title--small p-0'>Quy tắc cấp số</h4>
-                                    <div className='row'>
-                                        <div className='col-6'>
-                                            <div className='formService__checkbox'>
-                                                <Checkbox value={formik.values.quyTacCapSo.tangTuDong} checked={formik.values.quyTacCapSo.tangTuDong} className='formService__checkboxBox' onChange={(e) => { onChangeCheckbox("quyTacCapSo.tangTuDong", e) }}>Tăng tự động từ: </Checkbox>
-                                            </div>
-                                            <div className='formService__checkbox'>
-                                                <Checkbox value={formik.values.quyTacCapSo.prefix} checked={formik.values.quyTacCapSo.prefix} className='formService__checkboxBox' onChange={(e) => { onChangeCheckbox("quyTacCapSo.prefix", e) }}>Prefix: </Checkbox>
-                                            </div>
-                                            <div className='formService__checkbox'>
-                                                <Checkbox value={formik.values.quyTacCapSo.surfix} checked={formik.values.quyTacCapSo.surfix} className='formService__checkboxBox' onChange={(e) => { onChangeCheckbox("quyTacCapSo.surfix", e) }}>Surfix: </Checkbox>
-                                            </div>
-                                            <div className='formService__checkbox mb-0'>
-                                                <Checkbox value={formik.values.quyTacCapSo.reset} checked={formik.values.quyTacCapSo.reset} className='formService__checkboxBox' onChange={(e) => { onChangeCheckbox("quyTacCapSo.reset", e) }}>Reset mỗi ngày: </Checkbox>
-                                            </div>
-                                        </div>
-                                        <div className='col-6 formService__checboxContent'>
-                                            <div className='d-flex align-items-center formService__checboxText'>
-                                                <p>0001</p>
-                                                <h5>đến</h5>
-                                                <p>9999</p>
-                                            </div>
-                                            <div className='d-flex align-items-center formService__checboxText'>
-                                                <p>0001</p>
-                                            </div>
-                                            <div className='d-flex align-items-center formService__checboxText'>
-                                                <p>0001</p>
-                                            </div>
-                                        </div>
+                                <div className='col-6'>
+                                    <div className='formInput__bottomGroupInput'>
+                                        <p className='label-input m-0'>Trạng thái hoạt động: </p>
+                                        <Select
+                                            value={formik.values.trangThaiHoatDong}
+                                            style={{ width: "100%" }}
+                                            onChange={handleChangeHoatDong}
+                                            suffixIcon={<CaretDownOutlined style={{ color: "#FF7506", fontSize: "24px" }} />}
+                                            options={[
+                                                {
+                                                    value: 'Hoạt động',
+                                                    label: 'Hoạt động',
+                                                },
+                                                {
+                                                    value: 'Ngưng hoạt động',
+                                                    label: 'Ngưng hoạt động',
+                                                },
+                                            ]}
+                                        />
                                     </div>
                                 </div>
                                 <div className='col-12'>

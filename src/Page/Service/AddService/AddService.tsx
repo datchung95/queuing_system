@@ -1,46 +1,33 @@
 import { useFormik } from 'formik';
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
 import * as Yup from "yup"
 import User from '../../../component/User/User';
 import { RightOutlined, CaretDownOutlined } from '@ant-design/icons';
-import { Input, Select, Checkbox } from 'antd';
+import { Input, Select } from 'antd';
 import "../Service.scss";
-import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import { addServiceReducer, getAllServiceReducer } from '../../../redux/Reducers/ServiceReducer/ServiceReducer';
-import { addDoc, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
-import database from '../../../configFirebase';
-import { USER_LOGIN_ID } from '../../../util/Const/Const';
-import { getUserProfileReducer } from '../../../redux/Reducers/UserReducer/UserReducer';
 import moment from 'moment';
+import { DIARY, SERVICES } from '../../../redux/Const/Const';
+import { addDataAction } from '../../../redux/Actions/AddDataAction/AddDataAction';
+import { addHistoryAction } from '../../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import { getAllListDiaryReducer } from '../../../redux/Reducers/DiaryReducer/DiaryReducer';
+import { getAllDataAction } from '../../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import openNotificationWithIcon from '../../../Notification/Notification';
 
 export default function AddService() {
 
     const dispatch = useAppDispatch();
 
-    const addService = useAppSelector(state => state.ServiceReducer.addService);
-
-    const addSubmit = useAppSelector(state => state.ServiceReducer.addSubmit);
-
     const userProfile = useAppSelector(state => state.UserReducer.userProfile);
+
+    const arrService = useAppSelector(state => state.ServiceReducer.arrService);
 
     const navigate = useNavigate();
 
-    let userLogin: any = useRef({})
-
-    let service: any[] = [];
-
     useEffect(() => {
-        const getDataUserLogin = async () => {
-            let userLoginID: string = localStorage.getItem(USER_LOGIN_ID) as string
-            const docSnap = await getDoc(doc(database, "User", userLoginID));
-            if (docSnap.exists()) {
-                userLogin.current = docSnap.data()
-                dispatch(getUserProfileReducer(userLogin.current))
-            }
-        }
-        getDataUserLogin();
+        dispatch(getAllDataAction(SERVICES, getAllServiceReducer))
     }, [])
 
     const formik = useFormik({
@@ -50,44 +37,28 @@ export default function AddService() {
             moTa: "",
             tenDichVu: "",
             trangThaiHoatDong: "",
-            soTang: "0000",
-            quyTacCapSo: {
-                prefix: false,
-                surfix: false,
-                tangTuDong: false,
-                reset: false
-            }
+            email: ""
         },
         validationSchema: Yup.object().shape({
             maDichVu: Yup.string().trim().required("Mã dịch vụ là trường bắt buộc"),
             tenDichVu: Yup.string().trim().required("Tên dịch vụ là trường bắt buộc")
         }),
-        onSubmit: (value) => {
-            dispatch(addServiceReducer(value))
+        onSubmit: async (value) => {
+            let indexDeviceCode = arrService.findIndex(item => item.maDichVu === value.maDichVu)
+            if (indexDeviceCode !== -1) {
+                openNotificationWithIcon("error", "Mã dịch vụ đã tồn tại")
+            } else {
+                value.email = userProfile.email
+                await dispatch(addDataAction(SERVICES, value, addServiceReducer));
+                dispatch(addHistoryAction(DIARY, { tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm dịch vụ ${value.tenDichVu}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss") }, getAllListDiaryReducer)).then(() => {
+                    navigate("/service")
+                })
+            }
         }
     })
 
-    const addServiceFirestore = async () => {
-        if (addSubmit) {
-            await setDoc(doc(database, "Services", addService.maDichVu), {...addService, soTang: "0000"});
-            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm dịch vụ ${addService.tenDichVu}`, IPThucHien: "192.168.1.1", thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
-            const getService = await getDocs(collection(database, "Services"));
-            getService.forEach((doc) => {
-                service.push(doc.data())
-            });
-            await dispatch(getAllServiceReducer(service))
-            await navigate("/service")
-            window.location.reload()
-        }
-    }
-    addServiceFirestore()
-
     const handleChangeHoatDong = (value: string) => {
         formik.setFieldValue("trangThaiHoatDong", value)
-    };
-
-    const onChangeCheckbox = (name: string, e: CheckboxChangeEvent) => {
-        formik.setFieldValue(name, e.target.checked)
     };
 
     return (
@@ -133,38 +104,6 @@ export default function AddService() {
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Mô tả: </p>
                                         <Input.TextArea maxLength={1000} className='addService__inputDes' name="moTa" onChange={formik.handleChange} placeholder='Mô tả dịch vụ' />
-                                    </div>
-                                </div>
-                                <div className='col-6 formService__number'>
-                                    <h4 className='text--title--small p-0'>Quy tắc cấp số</h4>
-                                    <div className='row'>
-                                        <div className='col-6'>
-                                            <div className='formService__checkbox'>
-                                                <Checkbox className='formService__checkboxBox' onChange={(e) => {onChangeCheckbox("quyTacCapSo.tangTuDong", e)}}>Tăng tự động từ: </Checkbox>
-                                            </div>
-                                            <div className='formService__checkbox'>
-                                                <Checkbox className='formService__checkboxBox' onChange={(e) => {onChangeCheckbox("quyTacCapSo.prefix", e)}}>Prefix: </Checkbox>
-                                            </div>
-                                            <div className='formService__checkbox'>
-                                                <Checkbox className='formService__checkboxBox' onChange={(e) => {onChangeCheckbox("quyTacCapSo.surfix", e)}}>Surfix: </Checkbox>
-                                            </div>
-                                            <div className='formService__checkbox mb-0'>
-                                                <Checkbox className='formService__checkboxBox' onChange={(e) => {onChangeCheckbox("quyTacCapSo.reset", e)}}>Reset mỗi ngày: </Checkbox>
-                                            </div>
-                                        </div>
-                                        <div className='col-6 formService__checboxContent'>
-                                            <div className='d-flex align-items-center formService__checboxText'>
-                                                <p>0001</p>
-                                                <h5>đến</h5>
-                                                <p>9999</p>
-                                            </div>
-                                            <div className='d-flex align-items-center formService__checboxText'>
-                                                <p>0001</p>
-                                            </div>
-                                            <div className='d-flex align-items-center formService__checboxText'>
-                                                <p>0001</p>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                                 <div className='col-6'>

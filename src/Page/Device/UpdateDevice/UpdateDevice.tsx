@@ -1,100 +1,74 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import User from '../../../component/User/User'
 import { RightOutlined, CaretDownOutlined } from '@ant-design/icons';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { Input, Select } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
-import { addDoc, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
-import database from '../../../configFirebase';
-import { getAllDevices, getDetailDeviceReducer, updateDetailDeviceReducer } from '../../../redux/Reducers/DeviceReducer/DeviceReducer';
+import { getAllDevices, getDetailDeviceReducer } from '../../../redux/Reducers/DeviceReducer/DeviceReducer';
 import { useFormik } from 'formik';
 import * as Yup from "yup"
 import "./updateDevice.scss"
 import moment from 'moment'
+import { getDetailDataAction } from '../../../redux/Actions/GetDetailDataAction/GetDetailDataAction';
+import { DEVICES, DIARY, SERVICES } from '../../../redux/Const/Const';
+import { updateDataAction } from '../../../redux/Actions/UpdateDataAction/UpdateDataAction';
+import { getAllListDiaryReducer } from '../../../redux/Reducers/DiaryReducer/DiaryReducer';
+import { addHistoryAction } from '../../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import { getAllServiceReducer } from '../../../redux/Reducers/ServiceReducer/ServiceReducer';
+import { getAllDataAction } from '../../../redux/Actions/GetAllDataAction/GetAllDataAction';
 
 export default function UpdateDevice() {
 
     const maThietBiDetail = useParams();
 
-    let deviceDetail: any = useRef({})
-
     const dispatch = useAppDispatch();
 
     const detailDevice = useAppSelector(state => state.DeviceReducer.detailDevice);
-
-    let subMitUpdate = useAppSelector(state => state.DeviceReducer.subMitUpdate);
 
     const userProfile = useAppSelector(state => state.UserReducer.userProfile);
 
     const arrService = useAppSelector(state => state.ServiceReducer.arrService);
 
+    const arrServiceAction = arrService.filter(item => item.trangThaiHoatDong === "Hoạt động")
+
     const navigate = useNavigate();
 
-    let device: any[] = [];
-
     useEffect(() => {
-        const getDataDetailDevice = async () => {
-            let maThietbi: string = maThietBiDetail.id as string
-            const docSnap = await getDoc(doc(database, "Devices", maThietbi));
-            if (docSnap.exists()) {
-                deviceDetail.current = { ...docSnap.data(), id: docSnap.id }
-                dispatch(getDetailDeviceReducer(deviceDetail.current))
-            }
-        }
-        getDataDetailDevice();
+        dispatch(getDetailDataAction(DEVICES, getDetailDeviceReducer, maThietBiDetail.id))
+        dispatch(getAllDataAction(SERVICES, getAllServiceReducer))
     }, [])
-
-    const updateDeviceFireStore = async () => {
-        if (subMitUpdate) {
-            let maThietbi: string = maThietBiDetail.id as string
-            await setDoc(doc(database, "Devices", maThietbi), detailDevice);
-            await addDoc(collection(database, "ArrDiary"), {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin thiết bị ${detailDevice.maThietBi}`, IPThucHien: detailDevice.diaChiIP, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")});
-
-            const docSnap = await getDoc(doc(database, "Devices", maThietbi));
-            if (docSnap.exists()) {
-                deviceDetail.current = { ...docSnap.data(), id: docSnap.id }
-                dispatch(getDetailDeviceReducer(deviceDetail.current))
-            }
-            const getDevice = await getDocs(collection(database, "Devices"));
-            getDevice.forEach((doc) => {
-                device.push({ ...doc.data(), id: doc.id })
-            });
-            await dispatch(getAllDevices(device))
-            await navigate("/device")
-            window.location.reload()
-        }
-    }
-    updateDeviceFireStore()
 
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
             maThietBi: detailDevice.maThietBi,
             tenThietBi: detailDevice.tenThietBi,
-            diaChiIP: detailDevice.diaChiIP,
             loaiThietBi: detailDevice.loaiThietBi,
             hoatDong: detailDevice.hoatDong,
             ketNoi: detailDevice.ketNoi,
             dichVuSuDung: detailDevice.dichVuSuDung,
             tenDangNhap: detailDevice.tenDangNhap,
-            matKhau: detailDevice.matKhau
+            matKhau: detailDevice.matKhau,
+            email: detailDevice.email
         },
         validationSchema: Yup.object().shape({
             maThietBi: Yup.string().trim().required("Mã thiết bị là trường bắt buộc"),
             tenThietBi: Yup.string().trim().required("Tên thiết bị là trường bắt buộc"),
-            diaChiIP: Yup.string().trim().required("Địa chỉ IP là trường bắt buộc"),
             loaiThietBi: Yup.string().trim().required("Loại thiết bị là trường bắt buộc"),
             dichVuSuDung: Yup.array().required("Dịch vụ sử dụng là trường bắt buộc"),
             tenDangNhap: Yup.string().trim().required("Tên đăng nhập là trường bắt buộc"),
             matKhau: Yup.string().trim().required("Mật khẩu là trường bắt buộc")
         }),
-        onSubmit: (value) => {
-            dispatch(updateDetailDeviceReducer(value));
+        onSubmit: async (value) => {
+            await dispatch(updateDataAction(DEVICES, detailDevice.id, value, getAllDevices))
+            dispatch(addHistoryAction(DIARY, { tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Cập nhật thông tin thiết bị ${detailDevice.maThietBi}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss") }, getAllListDiaryReducer)).then(() => {
+                navigate("/device")
+            })
         }
     })
 
     const renderSelectSevice = () => {
-        return arrService.map((item, index) => {
+        return arrServiceAction.map((item, index) => {
             return {
                 value: item.tenDichVu,
                 label: item.tenDichVu
@@ -108,6 +82,14 @@ export default function UpdateDevice() {
 
     const handleChangeTag = (value: string[]) => {
         formik.setFieldValue("dichVuSuDung", value);
+    };
+
+    const handleChangeHoatDong = (value: string) => {
+        formik.setFieldValue("hoatDong", value)
+    };
+
+    const handleChangeKetNoi = (value: string) => {
+        formik.setFieldValue("ketNoi", value)
     };
 
     return (
@@ -137,21 +119,44 @@ export default function UpdateDevice() {
                         <h4 className='text--title--small'>Thông tin thiết bị</h4>
                         <div className='container-fluid'>
                             <div className='row'>
-                                <div className='col-6'>
+                                <div className='col-12'>
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Mã thiết bị: <span style={{ color: "#FF4747" }}>*</span></p>
-                                        <Input name="maThietBi" value={formik.values.maThietBi} onChange={formik.handleChange} placeholder='Nhập mã thiết bị' type="text" />
+                                        <Input disabled={true} name="maThietBi" value={formik.values.maThietBi} onChange={formik.handleChange} placeholder='Nhập mã thiết bị' type="text" />
                                         {formik.touched.maThietBi && <p className='text-danger'>{formik.errors.maThietBi}</p>}
                                     </div>
+                                </div>
+                                <div className='col-6'>
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Tên thiết bị: <span style={{ color: "#FF4747" }}>*</span></p>
                                         <Input name="tenThietBi" value={formik.values.tenThietBi} onChange={formik.handleChange} placeholder='Nhập tên thiết bị' type="text" />
                                         {formik.touched.tenThietBi && <p className='text-danger'>{formik.errors.tenThietBi}</p>}
                                     </div>
                                     <div className='formInput__bottomGroupInput'>
-                                        <p className='label-input m-0'>Địa chỉ IP: <span style={{ color: "#FF4747" }}>*</span></p>
-                                        <Input name="diaChiIP" value={formik.values.diaChiIP} onChange={formik.handleChange} placeholder='Nhập địa chỉ IP' type="text" />
-                                        {formik.touched.diaChiIP && <p className='text-danger'>{formik.errors.diaChiIP}</p>}
+                                        <p className='label-input m-0'>Tên đăng nhập: <span style={{ color: "#FF4747" }}>*</span></p>
+                                        <Input name="tenDangNhap" value={formik.values.tenDangNhap} onChange={formik.handleChange} placeholder='Nhập tài khoản' type="text" />
+                                        {formik.touched.tenDangNhap && <p className='text-danger'>{formik.errors.tenDangNhap}</p>}
+                                    </div>
+                                    <div className='formInput__bottomGroupInput'>
+                                        <p className='label-input m-0'>Trạng thái hoạt động: <span style={{ color: "#FF4747" }}>*</span></p>
+                                        <Select
+                                            value={formik.values.hoatDong}
+                                            placeholder="Chọn trạng thái hoạt động"
+                                            style={{ width: "100%" }}
+                                            onChange={handleChangeHoatDong}
+                                            suffixIcon={<CaretDownOutlined style={{ color: "#FF7506", fontSize: "24px" }} />}
+                                            options={[
+                                                {
+                                                    value: 'Hoạt động',
+                                                    label: 'Hoạt động',
+                                                },
+                                                {
+                                                    value: 'Ngưng hoạt động',
+                                                    label: 'Ngưng hoạt động',
+                                                },
+                                            ]}
+                                        />
+                                        {formik.touched.hoatDong && <p className='text-danger'>{formik.errors.hoatDong}</p>}
                                     </div>
                                 </div>
                                 <div className='col-6'>
@@ -177,14 +182,30 @@ export default function UpdateDevice() {
                                         {formik.touched.loaiThietBi && <p className='text-danger'>{formik.errors.loaiThietBi}</p>}
                                     </div>
                                     <div className='formInput__bottomGroupInput'>
-                                        <p className='label-input m-0'>Tên đăng nhập: <span style={{ color: "#FF4747" }}>*</span></p>
-                                        <Input name="tenDangNhap" value={formik.values.tenDangNhap} onChange={formik.handleChange} placeholder='Nhập tài khoản' type="text" />
-                                        {formik.touched.tenDangNhap && <p className='text-danger'>{formik.errors.tenDangNhap}</p>}
-                                    </div>
-                                    <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Mật khẩu: <span style={{ color: "#FF4747" }}>*</span></p>
                                         <Input name="matKhau" value={formik.values.matKhau} onChange={formik.handleChange} placeholder='Nhập mật khẩu' type="text" />
                                         {formik.touched.matKhau && <p className='text-danger'>{formik.errors.matKhau}</p>}
+                                    </div>
+                                    <div className='formInput__bottomGroupInput'>
+                                        <p className='label-input m-0'>Trạng thái kết nối: <span style={{ color: "#FF4747" }}>*</span></p>
+                                        <Select
+                                            value={formik.values.ketNoi}
+                                            placeholder="Chọn trạng thái kết nối"
+                                            style={{ width: "100%" }}
+                                            onChange={handleChangeKetNoi}
+                                            suffixIcon={<CaretDownOutlined style={{ color: "#FF7506", fontSize: "24px" }} />}
+                                            options={[
+                                                {
+                                                    value: 'Kết nối',
+                                                    label: 'Kết nối',
+                                                },
+                                                {
+                                                    value: 'Mất kết nối',
+                                                    label: 'Mất kết nối',
+                                                },
+                                            ]}
+                                        />
+                                        {formik.touched.ketNoi && <p className='text-danger'>{formik.errors.ketNoi}</p>}
                                     </div>
                                 </div>
                                 <div className='col-12'>

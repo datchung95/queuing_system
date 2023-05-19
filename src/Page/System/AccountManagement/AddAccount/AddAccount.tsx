@@ -8,11 +8,16 @@ import "../AccountManagement.scss"
 import { useFormik } from 'formik';
 import * as Yup from "yup"
 import { useAppDispatch, useAppSelector } from '../../../../redux/hook';
-import { addDoc, collection, doc, getDocs, setDoc } from 'firebase/firestore';
-import database from '../../../../configFirebase';
-import { addUserAccountReducer, getDataUserReducer } from '../../../../redux/Reducers/UserReducer/UserReducer';
+import { getDataUserReducer } from '../../../../redux/Reducers/UserReducer/UserReducer';
 import openNotificationWithIcon from '../../../../Notification/Notification';
-import { addUpUserPositionReducer, getListPositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { getListPositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { addDataAction } from '../../../../redux/Actions/AddDataAction/AddDataAction';
+import { DIARY, LIST_POSITION, USER } from '../../../../redux/Const/Const';
+import { getAllDataAction } from '../../../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import { updatePositionQuantityUserAction } from '../../../../redux/Actions/UpdateDataAction/UpdateDataAction';
+import { addHistoryAction } from '../../../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import moment from 'moment';
+import { getAllListDiaryReducer } from '../../../../redux/Reducers/DiaryReducer/DiaryReducer';
 
 export default function AddAccount() {
 
@@ -20,27 +25,14 @@ export default function AddAccount() {
 
     const listPosition = useAppSelector(state => state.PositionManagementReducer.listPosition);
 
-    const subMit = useAppSelector(state => state.UserReducer.subMit);
-
-    const addUser = useAppSelector(state => state.UserReducer.addUser);
+    const userProfile = useAppSelector(state => state.UserReducer.userProfile);
 
     const arrUser = useAppSelector(state => state.UserReducer.arrUser);
 
-    const detailPosition = useAppSelector(state => state.PositionManagementReducer.detailPosition);
-
     const navigate = useNavigate();
 
-    let user: any[] = [];
-
     useEffect(() => {
-        const getData = async () => {
-            const querySnapshot = await getDocs(collection(database, "User"));
-            querySnapshot.forEach((doc) => {
-                user.push({ ...doc.data(), id: doc.id, token: doc.id })
-            });
-            dispatch(getDataUserReducer(user));
-        }
-        getData();
+        dispatch(getAllDataAction(LIST_POSITION, getListPositionManagementReducer))
     }, [])
 
     let truePass: boolean = true;
@@ -55,13 +47,7 @@ export default function AddAccount() {
             matKhau: "",
             nhapLaiMatKhau: "",
             trangThaiHoatDong: "",
-            img: "",
-            thoiGianCap: [
-                {
-                    nguoiNhan: "",
-                    thoiGianNhanSo: ""
-                }
-            ]
+            img: ""
         },
         validationSchema: Yup.object().shape({
             tenNguoiDung: Yup.string().trim().required("Tên người dùng là trường bắt buộc"),
@@ -73,15 +59,21 @@ export default function AddAccount() {
             nhapLaiMatKhau: Yup.string().trim().required("Nhập lại mật khẩu là trường bắt buộc"),
             trangThaiHoatDong: Yup.string().trim().required("Trạng thái hoạt động là trường bắt buộc")
         }),
-        onSubmit: (value) => {
+        onSubmit: async (value) => {
             value.img = "https://picsum.photos/1";
             if (value.matKhau === value.nhapLaiMatKhau) {
                 let indexMail = arrUser.findIndex(item => item.email === value.email);
+                let indexPosition = listPosition.findIndex(item => item.tenVaiTro === value.vaiTro)
                 if (indexMail !== -1) {
                     openNotificationWithIcon("error", "Email đã tồn tại");
                 } else {
-                    dispatch(addUpUserPositionReducer(value.vaiTro))
-                    dispatch(addUserAccountReducer(value))
+                    if (indexPosition !== -1) {
+                        await dispatch(updatePositionQuantityUserAction(LIST_POSITION, listPosition[indexPosition].id, listPosition[indexPosition].soNguoiDung + 1, getListPositionManagementReducer))
+                    }
+                    await dispatch(addDataAction(USER, value, getDataUserReducer))
+                    dispatch(addHistoryAction(DIARY, { tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm người dùng ${value.tenDangNhap}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss") }, getAllListDiaryReducer)).then(() => {
+                        navigate("/system/accountmanagement")
+                    })
                 }
             } else {
                 openNotificationWithIcon("error", "Mật khẩu và nhập lại mật khẩu phải giống nhau");
@@ -97,16 +89,6 @@ export default function AddAccount() {
             }
         })
     }
-
-    const addUserAccountFirestore = async () => {
-        if (subMit) {
-            await setDoc(doc(database, "ListPosition", detailPosition.id), detailPosition)
-            await addDoc(collection(database, "User"), addUser);
-            await navigate("/system/accountmanagement")
-            window.location.reload()
-        }
-    }
-    addUserAccountFirestore()
 
     const handleChangeVaiTro = (value: string) => {
         formik.setFieldValue("vaiTro", value)

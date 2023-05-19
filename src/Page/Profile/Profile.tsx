@@ -1,10 +1,9 @@
 import { Input } from 'antd'
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
-import React, { useEffect, useRef, useState } from 'react'
+import { doc, updateDoc } from 'firebase/firestore'
+import React, { useState } from 'react'
 import User from '../../component/User/User'
 import database from '../../configFirebase'
-import { useAppDispatch, useAppSelector } from '../../redux/hook'
-import { getUserProfileReducer } from '../../redux/Reducers/UserReducer/UserReducer'
+import { useAppSelector } from '../../redux/hook'
 import { USER_LOGIN_ID } from '../../util/Const/Const'
 import { storage } from '../../configFirebase'
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
@@ -13,27 +12,11 @@ import openNotificationWithIcon from '../../Notification/Notification'
 
 export default function Profile() {
 
-    let userLogin: any = useRef({});
-
     const [openButton, setOpenButton] = useState("none");
 
     const [imgUpload, setImgUpload] = useState<any>(null);
 
-    const dispatch = useAppDispatch()
-
     const userProfile = useAppSelector(state => state.UserReducer.userProfile);
-
-    useEffect(() => {
-        const getDataUserLogin = async () => {
-            let userLoginID: string = localStorage.getItem(USER_LOGIN_ID) as string
-            const docSnap = await getDoc(doc(database, "User", userLoginID));
-            if (docSnap.exists()) {
-                userLogin.current = {...docSnap.data(), id: docSnap.id, token: docSnap.id}
-                dispatch(getUserProfileReducer(userLogin.current))
-            }
-        }
-        getDataUserLogin();
-    }, [])
 
     const handleChangeFile = async (e: any) => {
         await setImgUpload(e.target.files[0]);

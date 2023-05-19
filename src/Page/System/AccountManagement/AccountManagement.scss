@@ -15,6 +15,14 @@
                 filter: drop-shadow(2px 2px 8px rgba(232, 239, 244, 0.8));
             }
         }
+
+        .accoutManagement__buttonAdd {
+            border: none;
+            background-color: #fff2e7;
+            &:focus {
+                outline: none;
+            }
+        }
     }
 }
 

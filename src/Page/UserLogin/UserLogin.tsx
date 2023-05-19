@@ -1,34 +1,30 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import "./UserLogin.scss"
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { Input } from 'antd';
 import { useFormik } from 'formik';
 import { useAppDispatch, useAppSelector } from '../../redux/hook';
 import { EyeTwoTone, ExclamationCircleOutlined } from '@ant-design/icons';
 import * as Yup from "yup"
-import { textUserReducer } from '../../redux/Reducers/UserReducer/UserReducer';
+import { getDataUserReducer, truePasswordInputReducer } from '../../redux/Reducers/UserReducer/UserReducer';
+import { getAllDataAction } from '../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import { USER } from '../../redux/Const/Const';
+import { TOKEN, USER_LOGIN_ID } from '../../util/Const/Const';
+import openNotificationWithIcon from '../../Notification/Notification';
 
 export default function UserLogin() {
 
     const dispatch = useAppDispatch();
 
-    const userLogin = useAppSelector(state => state.UserReducer.userLogin);
+    const arrUser = useAppSelector(state => state.UserReducer.arrUser);
 
-    const subMit = useAppSelector(state => state.UserReducer.subMit);
+    const truePass = useAppSelector(state => state.UserReducer.truePass);
 
-    let truePass: boolean = true;
+    const navigate = useNavigate();
 
-    const textUserLogin = () => {
-        if (subMit) {
-            console.log("sasas")
-            if (userLogin.id === "") {
-                truePass = false
-            } else {
-                truePass = true
-            }
-        }
-    }
-    textUserLogin()
+    useEffect(() => {
+        dispatch(getAllDataAction(USER, getDataUserReducer))
+    }, [])
 
     const formik = useFormik({
         initialValues: {
@@ -40,7 +36,24 @@ export default function UserLogin() {
             matKhau: Yup.string().trim().required("Mật khẩu là trường bắt buộc")
         }),
         onSubmit: (value) => {
-            dispatch(textUserReducer(value));
+            let indexTenDangNhap = arrUser.findIndex(item => item.tenDangNhap === value.tenDangNhap);
+            if (indexTenDangNhap !== -1) {
+                if (arrUser[indexTenDangNhap].trangThaiHoatDong === "Hoạt động") {
+                    if (arrUser[indexTenDangNhap].matKhau === value.matKhau) {
+                        let userToken: string = arrUser[indexTenDangNhap].token as string;
+                        localStorage.setItem(TOKEN, userToken)
+                        localStorage.setItem(USER_LOGIN_ID, arrUser[indexTenDangNhap].id)
+                        dispatch(truePasswordInputReducer(true))
+                        navigate("/profile")
+                    } else {
+                        dispatch(truePasswordInputReducer(false))
+                    }
+                } else {
+                    openNotificationWithIcon("error", "Tài khoản đã bị ngưng hoạt động")
+                }
+            } else {
+                dispatch(truePasswordInputReducer(false))
+            }
         }
     })
 

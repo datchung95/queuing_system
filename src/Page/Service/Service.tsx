@@ -1,18 +1,22 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import User from '../../component/User/User'
 import { RightOutlined } from '@ant-design/icons';
 import { CaretDownOutlined, SearchOutlined, CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 import "./Service.scss"
-import { Input, Select, Table, DatePicker } from 'antd';
-import type { DatePickerProps, RangePickerProps } from 'antd/es/date-picker';
-import { NavLink } from 'react-router-dom';
+import { Input, Select, Table } from 'antd';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../redux/hook';
 import { ColumnsType } from 'antd/lib/table';
-import { collection, getDocs } from 'firebase/firestore';
-import database from '../../configFirebase';
 import { useFormik } from 'formik';
-import moment from "moment"
 import { getAllServiceReducer, searchActiveServiceReducer, searchKeyWordNameServiceReducer } from '../../redux/Reducers/ServiceReducer/ServiceReducer';
+import { getAllDataAction } from '../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import { DIARY, SERVICES } from '../../redux/Const/Const';
+import openNotificationWithIcon from '../../Notification/Notification';
+import { deleteDataAction } from '../../redux/Actions/DeleteDataAction/DeleteAction';
+import { addHistoryAction } from '../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import moment from 'moment';
+import { getAllListDiaryReducer } from '../../redux/Reducers/DiaryReducer/DiaryReducer';
+import { ID_SERVICE } from '../../util/Const/Const';
 
 
 interface DataType {
@@ -26,13 +30,31 @@ export default function Service() {
 
     const dispatch = useAppDispatch();
 
+    const navigate = useNavigate();
+
     const arrService = useAppSelector(state => state.ServiceReducer.arrService);
 
-    let service: any[] = [];
+    const userProfile = useAppSelector(state => state.UserReducer.userProfile);
 
-    moment.updateLocale('en', {
-        weekdaysMin: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    });
+    useEffect(() => {    
+        dispatch(getAllDataAction(SERVICES, getAllServiceReducer))
+    }, [])
+
+
+    const handleChangeActive = async (value: string) => {
+        await dispatch(getAllDataAction(SERVICES, getAllServiceReducer))
+        dispatch(searchActiveServiceReducer(value));
+    }
+
+    const formik = useFormik({
+        initialValues: {
+            keyWord: ""
+        },
+        onSubmit: async (value) => {
+            await dispatch(getAllDataAction(SERVICES, getAllServiceReducer))
+            dispatch(searchKeyWordNameServiceReducer(value))
+        }
+    })
 
     const columns: ColumnsType<DataType> = [
         {
@@ -62,48 +84,31 @@ export default function Service() {
             title: '',
             dataIndex: '',
             render: (text) => {
-                return <NavLink to={`/service/detailservice/${text.maDichVu}`} className='button--blue'>Chi tiết</NavLink>
+                return <button className='button--blue' onClick={() => {
+                    if (text.email === userProfile.email || userProfile.vaiTro === "Admin") {
+                        navigate(`/service/updateservice/${text.id}`)
+                        localStorage.setItem(ID_SERVICE, text.id)
+                    } else {
+                        openNotificationWithIcon("error", "Bạn không có quyền chỉnh sửa")
+                    }
+                }}>Cập nhật</button>
             }
         },
         {
             title: '',
             dataIndex: '',
             render: (text) => {
-                return <NavLink to={`/service/updateservice/${text.maDichVu}`} className='button--blue'>Cập nhật</NavLink>
+                return <button className='button--blue' onClick={() => {
+                    if (text.email === userProfile.email || userProfile.vaiTro === "Admin") {
+                        dispatch(deleteDataAction(SERVICES, text.id, getAllServiceReducer))
+                        dispatch(addHistoryAction(DIARY, { tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Xóa dịch vụ ${text.tenDichVu}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss") }, getAllListDiaryReducer))
+                    } else {
+                        openNotificationWithIcon("error", "Bạn không có quyền xóa")
+                    }
+                }}>Xóa</button>
             }
-        },
-    ];
-
-    const onChange = (
-        value: DatePickerProps['value'] | RangePickerProps['value'],
-        dateString: [string, string] | string,
-    ) => {
-        console.log('Selected Time: ', value);
-        console.log('Formatted Selected Time: ', dateString);
-    };
-
-    const getArrService = async () => {
-        const getService = await getDocs(collection(database, "Services"));
-        getService.forEach((doc) => {
-            service.push({ ...doc.data(), id: doc.id })
-        });
-        dispatch(getAllServiceReducer(service))
-    }
-
-    const handleChangeActive = async (value: string) => {
-        await getArrService();
-        dispatch(searchActiveServiceReducer(value));
-    }
-
-    const formik = useFormik({
-        initialValues: {
-            keyWord: ""
-        },
-        onSubmit: async (value) => {
-            await getArrService();
-            dispatch(searchKeyWordNameServiceReducer(value))
         }
-    })
+    ];
 
     const itemRender = (_: any, type: any, originalElement: any) => {
         if (type === "prev") {
@@ -165,17 +170,9 @@ export default function Service() {
                                             ]}
                                         />
                                     </div>
-                                    <div>
-                                        <p className='label-input m-0'>Chọn thời gian</p>
-                                        <div className='service__input d-flex'>
-                                            <DatePicker.RangePicker className='position-relative' onChange={onChange} suffixIcon={null} showTime format="DD/MM/YYYY" />
-                                            <img style={{ width: "20px", height: "20px", position: "absolute", top: "40px", left: "355px" }} src={require("../../assets/icon/calendar.png")} alt="calendar" />
-                                            <img style={{ width: "20px", height: "20px", position: "absolute", top: "40px", left: "520px" }} src={require("../../assets/icon/calendar.png")} alt="calendar" />
-                                        </div>
-                                    </div>
                                 </div>
                                 <div>
-                                    <p className='label-input m-0'>Tìm từ khóa</p>
+                                    <p className='label-input m-0'>Tìm tên dịch vụ</p>
                                     <form style={{ position: "relative" }} onSubmit={formik.handleSubmit}>
                                         <Input
                                             className='device__input'

@@ -1,21 +1,26 @@
-import React, { Fragment } from 'react'
+import React, { Fragment, useEffect } from 'react'
 import User from '../../component/User/User'
 import { RightOutlined } from '@ant-design/icons';
 import { CaretDownOutlined, SearchOutlined, CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 import "./Device.scss"
 import { Input, Select, Table } from 'antd';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../redux/hook';
 import { ColumnsType } from 'antd/lib/table';
-import { dropdownTextServiceReducer, getAllDevices, searchActiveReducer, searchConectReducer, searchKeyWordName } from '../../redux/Reducers/DeviceReducer/DeviceReducer';
-import { collection, getDocs } from 'firebase/firestore';
-import database from '../../configFirebase';
+import { getAllDevices, searchActiveReducer, searchConectReducer, searchKeyWordName } from '../../redux/Reducers/DeviceReducer/DeviceReducer';
 import { useFormik } from 'formik';
+import { DEVICES, DIARY } from '../../redux/Const/Const';
+import { getAllDataAction } from '../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import openNotificationWithIcon from '../../Notification/Notification';
+import { deleteDataAction } from '../../redux/Actions/DeleteDataAction/DeleteAction';
+import { addHistoryAction } from '../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import moment from 'moment';
+import { getAllListDiaryReducer } from '../../redux/Reducers/DiaryReducer/DiaryReducer';
+import { ID_DEVICE } from '../../util/Const/Const';
 
 interface DataType {
     maThietBi: string;
     tenThietBi: string;
-    diaChiIP: string;
     hoatDong: string;
     ketNoi: string;
     dichVuSuDung: string[];
@@ -27,9 +32,33 @@ export default function Device() {
 
     const arrDevice = useAppSelector(state => state.DeviceReducer.arrDevice);
 
-    const dropdownTextService = useAppSelector(state => state.DeviceReducer.dropdownTextService);
+    const userProfile = useAppSelector(state => state.UserReducer.userProfile)
 
-    let device: any[] = []
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        dispatch(getAllDataAction(DEVICES, getAllDevices))
+    }, [])
+
+    const handleChangeActive = async (value: string) => {
+        await dispatch(getAllDataAction(DEVICES, getAllDevices))
+        dispatch(searchActiveReducer(value));
+    }
+
+    const hadleChangeConnect = async (value: string) => {
+        await dispatch(getAllDataAction(DEVICES, getAllDevices))
+        dispatch(searchConectReducer(value))
+    }
+
+    const formik = useFormik({
+        initialValues: {
+            keyWord: ""
+        },
+        onSubmit: async (value) => {
+            await dispatch(getAllDataAction(DEVICES, getAllDevices))
+            dispatch(searchKeyWordName(value))
+        }
+    })
 
     const columns: ColumnsType<DataType> = [
         {
@@ -39,10 +68,6 @@ export default function Device() {
         {
             title: 'Tên thiết bị',
             dataIndex: 'tenThietBi',
-        },
-        {
-            title: 'Địa chỉ IP',
-            dataIndex: 'diaChiIP',
         },
         {
             title: 'Trạng thái hoạt động',
@@ -69,79 +94,61 @@ export default function Device() {
         {
             title: 'Dịch vụ sử dụng',
             dataIndex: 'dichVuSuDung',
+            width: 300,
             render: (text: string[]) => {
-                if (text.length < 2) {
-                    return <Fragment>
-                        <span>{text[0]}</span>
-                    </Fragment>
-                } else {
-                    if (dropdownTextService) {
-                        return <div>
-                            {text.map((item, index) => {
-                                return <Fragment key={index}>
-                                    <span>{item}, </span>
-                                </Fragment>
-                            })}
-                            <button className='d-block button--blue' onClick={() => {
-                                dispatch(dropdownTextServiceReducer(false))
-                            }}>Thu nhỏ</button>
-                        </div>
+                return <div>
+                    {text.map((item, index) => {
+                        if (item === text[text.length - 1]) {
+                            return <Fragment key={index}>
+                                <span>{item}.</span>
+                            </Fragment>
+                        } else {
+                            return <Fragment key={index}>
+                                <span>{item}, </span>
+                            </Fragment>
+                        }
+                    })}
+                </div>
+            }
+        },
+        {
+            title: '',
+            dataIndex: '',
+            render: (text) => {
+                return <NavLink to={`/device/detaildevice/${text.id}`} className='button--blue' onClick={() => {
+                    localStorage.setItem(ID_DEVICE, text.id)
+                }}>Chi tiết</NavLink>
+            }
+        },
+        {
+            title: '',
+            dataIndex: '',
+            render: (text) => {
+                return <button className='button--blue' onClick={() => {
+                    if (text.email === userProfile.email || userProfile.vaiTro === "Admin") {
+                        navigate(`/device/updatedevice/${text.id}`)
+                        localStorage.setItem(ID_DEVICE, text.id)
                     } else {
-                        return <div>
-                            <span>{text[0]}, </span>
-                            <span>{text[1]}, </span>
-                            <span>...</span>
-                            <button className='d-block button--blue' onClick={() => {
-                                dispatch(dropdownTextServiceReducer(true))
-                            }}>Xem Thêm</button>
-                        </div>
+                        openNotificationWithIcon("error", "Bạn không có quyền chỉnh sửa")
                     }
-                }
+                }}>Cập nhật</button>
             }
         },
         {
             title: '',
             dataIndex: '',
             render: (text) => {
-                return <NavLink to={`/device/detaildevice/${text.id}`} className='button--blue'>Chi tiết</NavLink>
+                return <button className='button--blue' onClick={() => {
+                    if (text.email === userProfile.email || userProfile.vaiTro === "Admin") {
+                        dispatch(deleteDataAction(DEVICES, text.id, getAllDevices))
+                        dispatch(addHistoryAction(DIARY, { tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Xóa thiết bị ${text.maThietBi}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss") }, getAllListDiaryReducer))
+                    } else {
+                        openNotificationWithIcon("error", "Bạn không có quyền xóa")
+                    }
+                }}>Xóa</button>
             }
-        },
-        {
-            title: '',
-            dataIndex: '',
-            render: (text) => {
-                return <NavLink to={`/device/updatedevice/${text.id}`} className='button--blue'>Cập nhật</NavLink>
-            }
-        },
-    ];
-
-    const getDevice = async () => {
-        const getDevice = await getDocs(collection(database, "Devices"));
-        getDevice.forEach((doc) => {
-            device.push({ ...doc.data(), id: doc.id })
-        });
-        dispatch(getAllDevices(device))
-    }
-
-    const handleChangeActive = async (value: string) => {
-        await getDevice()
-        dispatch(searchActiveReducer(value));
-    }
-
-    const hadleChangeConnect = async (value: string) => {
-        await getDevice()
-        dispatch(searchConectReducer(value))
-    }
-
-    const formik = useFormik({
-        initialValues: {
-            keyWord: ""
-        },
-        onSubmit: async (value) => {
-            await getDevice()
-            dispatch(searchKeyWordName(value))
         }
-    })
+    ];
 
     const itemRender = (_: any, type: any, originalElement: any) => {
         if (type === "prev") {
@@ -229,7 +236,7 @@ export default function Device() {
                                     </div>
                                 </div>
                                 <div>
-                                    <p className='label-input m-0'>Tìm từ khóa</p>
+                                    <p className='label-input m-0'>Tìm tên thiết bị</p>
                                     <form style={{ position: "relative" }} onSubmit={formik.handleSubmit}>
                                         <Input
                                             className='device__input'

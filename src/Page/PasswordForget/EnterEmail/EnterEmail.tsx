@@ -1,35 +1,28 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import './EnterEmail.scss'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { Input } from 'antd';
 import { useFormik } from 'formik';
 import * as Yup from "yup"
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
-import { textEmailUserReducer } from '../../../redux/Reducers/UserReducer/UserReducer';
-import { USER_EMAIL, USER_EMAIL_ID } from '../../../util/Const/Const';
+import { getDataUserReducer, trueEmailInputReducer } from '../../../redux/Reducers/UserReducer/UserReducer';
+import { USER_EMAIL_ID } from '../../../util/Const/Const';
+import { getAllDataAction } from '../../../redux/Actions/GetAllDataAction/GetAllDataAction';
+import { USER } from '../../../redux/Const/Const';
 
 export default function EnterEmail() {
 
     const dispatch = useAppDispatch();
 
-    const userEmail = useAppSelector(state => state.UserReducer.userEmail);
+    const trueMail = useAppSelector(state => state.UserReducer.trueMail);
 
-    const subMitMail = useAppSelector(state => state.UserReducer.subMitMail);
+    const arrUser = useAppSelector(state => state.UserReducer.arrUser);
 
-    let trueMail: boolean = true;
+    const navigate = useNavigate();
 
-    const textMail = async () => {
-        if (subMitMail) {
-            if (userEmail.id === "") {
-                trueMail = false
-            } else {
-                trueMail = true
-                localStorage.setItem(USER_EMAIL, userEmail.email);
-                localStorage.setItem(USER_EMAIL_ID, userEmail.id);
-            }
-        }
-    }
-    textMail()
+    useEffect(() => {
+        dispatch(getAllDataAction(USER, getDataUserReducer))
+    }, [])
 
     const formik = useFormik({
         initialValues: {
@@ -39,7 +32,14 @@ export default function EnterEmail() {
             email: Yup.string().trim().required("Email là trường bắt buộc")
         }),
         onSubmit: (value) => {
-            dispatch(textEmailUserReducer(value))
+            let indexMail = arrUser.findIndex(item => item.email === value.email);
+            if (indexMail !== -1) {
+                localStorage.setItem(USER_EMAIL_ID, arrUser[indexMail].id);
+                dispatch(trueEmailInputReducer(true))
+                navigate("/changepass")
+            } else {
+                dispatch(trueEmailInputReducer(false))
+            }
         }
     })
 

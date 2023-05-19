@@ -1,33 +1,23 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import { RightOutlined } from '@ant-design/icons';
 import User from '../../../component/User/User';
 import { NavLink, useParams } from 'react-router-dom';
 import "./DetailDevice.scss"
 import { useAppDispatch, useAppSelector } from '../../../redux/hook';
-import { doc, getDoc } from 'firebase/firestore';
-import database from '../../../configFirebase';
 import { getDetailDeviceReducer } from '../../../redux/Reducers/DeviceReducer/DeviceReducer';
+import { getDetailDataAction } from '../../../redux/Actions/GetDetailDataAction/GetDetailDataAction';
+import { DEVICES } from '../../../redux/Const/Const';
 
 export default function DetailDevice() {
 
     const maThietBiDetail = useParams();
-
-    let deviceDetail: any = useRef({})
 
     const dispatch = useAppDispatch();
 
     const detailDevice = useAppSelector(state => state.DeviceReducer.detailDevice);
 
     useEffect(() => {
-        const getDataDetailDevice = async () => {
-            let maThietbi: string = maThietBiDetail.id as string
-            const docSnap = await getDoc(doc(database, "Devices", maThietbi));
-            if (docSnap.exists()) {
-                deviceDetail.current = { ...docSnap.data(), id: docSnap.id }
-                dispatch(getDetailDeviceReducer(deviceDetail.current))
-            }
-        }
-        getDataDetailDevice();
+        dispatch(getDetailDataAction(DEVICES, getDetailDeviceReducer, maThietBiDetail.id))
     }, [])
 
     const renderDichVuSuDung = () => {
@@ -79,8 +69,8 @@ export default function DetailDevice() {
                                                 <div className='col-3 deviceDetail__infoText'>{detailDevice.tenThietBi}</div>
                                             </div>
                                             <div className='row deviceDetail__info'>
-                                                <div className='col-3 deviceDetail__infoTitle'>Địa chỉ IP:</div>
-                                                <div className='col-3 deviceDetail__infoText'>{detailDevice.diaChiIP}</div>
+                                                <div className='col-3 deviceDetail__infoTitle'>Trạng thái hoạt động:</div>
+                                                <div className='col-3 deviceDetail__infoText'>{detailDevice.hoatDong}</div>
                                             </div>
                                         </div>
                                         <div className='col-6'>
@@ -95,6 +85,10 @@ export default function DetailDevice() {
                                             <div className='row deviceDetail__info'>
                                                 <div className='col-3 deviceDetail__infoTitle'>Mật khẩu:</div>
                                                 <div className='col-3 deviceDetail__infoText'>{detailDevice.matKhau}</div>
+                                            </div>
+                                            <div className='row deviceDetail__info'>
+                                                <div className='col-3 deviceDetail__infoTitle'>Trạng thái kết nối:</div>
+                                                <div className='col-3 deviceDetail__infoText'>{detailDevice.ketNoi}</div>
                                             </div>
                                         </div>
                                         <div className='col-12'>

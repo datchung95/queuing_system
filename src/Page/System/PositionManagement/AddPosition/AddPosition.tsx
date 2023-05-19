@@ -1,5 +1,5 @@
 import { useFormik } from 'formik';
-import React, { useRef } from 'react'
+import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../../redux/hook';
 import * as Yup from "yup"
@@ -8,32 +8,27 @@ import { RightOutlined } from '@ant-design/icons';
 import { Input, List, Checkbox } from 'antd';
 import "../PositionManagement.scss"
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import { addDoc, collection, getDocs } from 'firebase/firestore';
-import database from '../../../../configFirebase';
 import VirtualList from 'rc-virtual-list';
-import { addPositionManagementReducer, getListPositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { addPositionManagementReducer } from '../../../../redux/Reducers/PositionManagementReducer/PositionManagementReducer';
+import { DIARY, LIST_POSITION } from '../../../../redux/Const/Const';
+import { addDataAction } from '../../../../redux/Actions/AddDataAction/AddDataAction';
+import { addHistoryAction } from '../../../../redux/Actions/AddHistoryAction/AddHistoryAction';
+import moment from 'moment';
+import { getAllListDiaryReducer } from '../../../../redux/Reducers/DiaryReducer/DiaryReducer';
 
 export default function AddPosition() {
 
     const dispatch = useAppDispatch();
 
-    const addSubmit = useAppSelector(state => state.PositionManagementReducer.addSubmit);
-
-    const addPosition = useAppSelector(state => state.PositionManagementReducer.addPosition);
+    const userProfile = useAppSelector(state => state.UserReducer.userProfile);
 
     const navigate = useNavigate();
-
-    let position: any[] = [];
-
-    let tenVaiTroRef = useRef("");
-
-    let moTaRef = useRef("");
 
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
-            tenVaiTro: tenVaiTroRef.current,
-            moTa: moTaRef.current,
+            tenVaiTro: "",
+            moTa: "",
             soNguoiDung: 0,
             chucNangXA: false,
             chucNangYA: false,
@@ -48,23 +43,13 @@ export default function AddPosition() {
         validationSchema: Yup.object().shape({
             tenVaiTro: Yup.string().trim().required("Tên vai trò là trường bắt buộc")
         }),
-        onSubmit: (value) => {
-            dispatch(addPositionManagementReducer(value))
+        onSubmit: async (value) => {
+            await dispatch(addDataAction(LIST_POSITION, value, addPositionManagementReducer))
+            dispatch(addHistoryAction(DIARY, {tenDangNhap: userProfile.tenDangNhap, thaoTacThucHien: `Thêm vai trò ${value.tenVaiTro}`, thoiGianTacDong: moment(moment.now()).format("DD/MM/YYYY hh:mm:ss")}, getAllListDiaryReducer)).then(() => {
+                navigate("/system/positionmanagement")
+            })
         }
     })
-
-    const addPositionManagementFirestore = async () => {
-        if (addSubmit) {
-            await addDoc(collection(database, "ListPosition"), addPosition);
-            const getPosition = await getDocs(collection(database, "ListPosition"));
-            getPosition.forEach((doc) => {
-                position.push({ ...doc.data(), id: doc.id })
-            });
-            dispatch(getListPositionManagementReducer(position))
-            navigate("/system/positionmanagement")
-        }
-    }
-    addPositionManagementFirestore()
 
     const onChangeCheckbox = (name: string, e: CheckboxChangeEvent) => {
         formik.setFieldValue(name, e.target.checked)
@@ -116,18 +101,12 @@ export default function AddPosition() {
                                 <div className='col-6'>
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Tên vai trò: <span style={{ color: "#FF4747" }}>*</span></p>
-                                        <Input name="tenVaiTro" onChange={(e) => {
-                                            tenVaiTroRef.current = e.target.value
-                                            formik.setFieldValue("tenVaiTro", tenVaiTroRef.current)
-                                        }} placeholder='Nhập tên vai trò' type="text" />
+                                        <Input name="tenVaiTro" onChange={formik.handleChange} placeholder='Nhập tên vai trò' type="text" />
                                         {formik.touched.tenVaiTro && <p className='text-danger'>{formik.errors.tenVaiTro}</p>}
                                     </div>
                                     <div className='formInput__bottomGroupInput'>
                                         <p className='label-input m-0'>Mô tả: </p>
-                                        <Input.TextArea maxLength={1000} className='addService__inputDes' name="moTa" onChange={(e) => {
-                                            moTaRef.current = e.target.value
-                                            formik.setFieldValue("moTa", moTaRef.current)
-                                        }} placeholder='Nhập mô tả' />
+                                        <Input.TextArea maxLength={1000} className='addService__inputDes' name="moTa" onChange={formik.handleChange} placeholder='Nhập mô tả' />
                                     </div>
                                     <p className='formInput__bottomTextDanger'><span style={{ color: "#FF4747" }}>*</span> là trường thông tin bắt buộc</p>
                                 </div>
