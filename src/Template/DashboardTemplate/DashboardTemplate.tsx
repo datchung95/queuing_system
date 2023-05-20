@@ -4,11 +4,12 @@ import { Layout, Menu } from 'antd';
 import { MoreOutlined } from '@ant-design/icons';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import "./DashboardTemplate.scss"
-import { ID_DETAIL_USER, ID_DEVICE, ID_LIST_POSITION, ID_SERVICE, TOKEN, USER_LOGIN_ID } from '../../util/Const/Const';
-import { useAppDispatch } from '../../redux/hook';
+import { ID_DETAIL_USER, ID_DEVICE, ID_LIST_POSITION, ID_SERVICE, USER_LOGIN_ID } from '../../util/Const/Const';
+import { useAppDispatch, useAppSelector } from '../../redux/hook';
 import { getDetailDataAction } from '../../redux/Actions/GetDetailDataAction/GetDetailDataAction';
 import { USER } from '../../redux/Const/Const';
-import { getUserProfileReducer } from '../../redux/Reducers/UserReducer/UserReducer';
+import { getDataUserReducer, getUserProfileReducer } from '../../redux/Reducers/UserReducer/UserReducer';
+import { getAllDataAction } from '../../redux/Actions/GetAllDataAction/GetAllDataAction';
 
 const { Content, Sider } = Layout;
 
@@ -40,18 +41,30 @@ export default function DashboardTemplate() {
 
     const idDetailListPosition = localStorage.getItem(ID_LIST_POSITION)
 
+    const arrUser = useAppSelector(state => state.UserReducer.arrUser);
+
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
 
     useEffect(() => {
+        dispatch(getAllDataAction(USER, getDataUserReducer))
+
         let userId: string = JSON.stringify(localStorage.getItem(USER_LOGIN_ID)).slice(1, -1)
         dispatch(getDetailDataAction(USER, getUserProfileReducer, userId))
-
-        if (!localStorage.getItem(TOKEN)) {
-            navigate("/login");
-        }
     }, [])
+
+    const testUserAction = () => {
+        let index = arrUser.findIndex(item => item.id === localStorage.getItem(USER_LOGIN_ID)) 
+        if (index !== -1) {
+            if (arrUser[index].trangThaiHoatDong === "Ngưng hoạt động") {
+                navigate("/login")
+            }
+        } else {
+            navigate("/login")
+        }
+    }
+    testUserAction()
 
     const items: MenuItem[] = [
         getItem(<NavLink style={({ isActive }) =>
