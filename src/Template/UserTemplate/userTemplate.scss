@@ -1,8 +1,8 @@
-@import '../../style//Helper/mixin';
+@import "../../style//Helper/mixin";
 
 #userLogin-template {
     .userLogin-template__left {
-        background-color: #EAEAEC;
+        background-color: #eaeaec;
         padding-top: 82px;
         .userLogin-template__outlet {
             width: 400px;
@@ -16,11 +16,14 @@
     .userLogin-template__right {
         position: relative;
         .userLogin-template__right-img {
-            margin-top: 82px;
+            height: 100%;
             .userLogin-template__img {
-                padding-left: 79px;
-                width: 605px;
-                height: 614px;
+                width: 100%;
+                height: 100%;
+                img {
+                    width: 100%;
+                    height: 100%;
+                }
             }
             .userLogin-template__text {
                 position: absolute;
@@ -28,10 +31,10 @@
                 top: 407px;
                 white-space: nowrap;
                 .userLogin-template__textlight {
-                    @include styleText(#FF7506, 34px, 400, 51px);
+                    @include styleText(#ff7506, 34px, 400, 51px);
                 }
                 .userLogin-template__textbold {
-                    @include styleText(#FF7506, 36px, 900, 54px);
+                    @include styleText(#ff7506, 36px, 900, 54px);
                 }
             }
         }

@@ -37,7 +37,7 @@ export default function ForgetPasswordTemplate() {
                     </div>
                     <div className='col-7 userLogin-template__right'>
                         <div className='userLogin-template__right-img'>
-                            <img className='userLogin-template__img' src={require("../../../assets/group/Frame.png")} alt="frame" />
+                            <img className='userLogin-template__img' src={require("../../../assets/group/backgroundemail.jpg")} alt="frame" />
                         </div>
                     </div>
                 </div>

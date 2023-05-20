@@ -170,12 +170,12 @@ export default function UpdateDevice() {
                                             suffixIcon={<CaretDownOutlined style={{ color: "#FF7506", fontSize: "24px" }} />}
                                             options={[
                                                 {
-                                                    value: 'Kiosk',
-                                                    label: 'Kiosk',
+                                                    value: 'Loại 1',
+                                                    label: 'Loại 1',
                                                 },
                                                 {
-                                                    value: 'Display counter',
-                                                    label: 'Display counter',
+                                                    value: 'Loại 2',
+                                                    label: 'Loại 2',
                                                 },
                                             ]}
                                         />

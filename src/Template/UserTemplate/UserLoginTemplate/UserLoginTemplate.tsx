@@ -37,11 +37,7 @@ export default function UserLoginTemplate() {
                     </div>
                     <div className='col-7 userLogin-template__right'>
                         <div className='userLogin-template__right-img'>
-                            <img className='userLogin-template__img' src={require("../../../assets/group/Group 341.png")} alt="group" />
-                            <div className='userLogin-template__text'>
-                                <p className='userLogin-template__textlight'>Hệ thống</p>
-                                <h4 className='userLogin-template__textbold'>QUẢN LÝ</h4>
-                            </div>
+                            <img className='userLogin-template__img' src={require("../../../assets/group/backgroundlogin.jpg")} alt="group" />
                         </div>
                     </div>
                 </div>
